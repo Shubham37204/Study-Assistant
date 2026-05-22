@@ -1,0 +1,22 @@
+M1 → core/ layer: chunker + embedder + vector_store + bm25_store
+     verify: ingest 1 PDF, query returns relevant chunks
+
+M2 → ingestion_agent: file type detect, OCR, metadata, summarize
+     verify: upload PDF + image, both indexed correctly
+
+M3 → retrieval_agent: hybrid search (vector + BM25) + reranker
+     verify: hybrid beats pure vector on keyword-heavy queries
+
+M4 → LangGraph graph: query→plan→retrieve→generate→critic loop
+     verify: full Q&A with citations, critic catches hallucination
+
+M5 → FastAPI routes: /upload, /query, /sessions
+     verify: curl end-to-end works
+
+M6 → React frontend: upload zone + chat UI + source cards
+     verify: full flow in browser
+
+M7 → Deploy on Render + README with architecture diagram
+     verify: live URL works
+
+     -----------
