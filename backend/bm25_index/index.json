@@ -1,0 +1,68 @@
+{
+  "051292c2-8adc-40c8-887f-cec88f66d1a5": {
+    "chunks": [
+      {
+        "chunk_id": "051292c2-8adc-40c8-887f-cec88f66d1a5_0",
+        "document_id": "051292c2-8adc-40c8-887f-cec88f66d1a5",
+        "text": "Newton's Laws of Motion\n\nNewton's first law states that an object at rest stays at rest and an\nobject in motion stays in motion unless acted upon by a net external force.\n\nNewton's second law states that force equals mass times acceleration.\nThe formula is F = ma. This is the most commonly used equation in mechanics.\n\nNewton's third law states that for every action there is an equal and\nopposite reaction. If object A exerts a force on object B, then B exerts\nan equal and opposite force on A.\n\nGravitation",
+        "page_number": 1,
+        "chunk_index": 0,
+        "total_chunks": 2,
+        "metadata": {
+          "document_id": "051292c2-8adc-40c8-887f-cec88f66d1a5",
+          "user_id": "test_user_1",
+          "source_path": "C:\\Users\\Shubham\\AppData\\Local\\Temp\\tmp1vral_fv.txt",
+          "file_type": "text"
+        }
+      },
+      {
+        "chunk_id": "051292c2-8adc-40c8-887f-cec88f66d1a5_1",
+        "document_id": "051292c2-8adc-40c8-887f-cec88f66d1a5",
+        "text": "rts\nan equal and opposite force on A.\n\nGravitation\n\nThe law of universal gravitation states that every mass attracts every\nother mass. The gravitational force is proportional to the product of the\nmasses and inversely proportional to the square of the distance between them.\nF = G * m1 * m2 / r^2",
+        "page_number": 1,
+        "chunk_index": 1,
+        "total_chunks": 2,
+        "metadata": {
+          "document_id": "051292c2-8adc-40c8-887f-cec88f66d1a5",
+          "user_id": "test_user_1",
+          "source_path": "C:\\Users\\Shubham\\AppData\\Local\\Temp\\tmp1vral_fv.txt",
+          "file_type": "text"
+        }
+      }
+    ],
+    "user_id": "test_user_1"
+  },
+  "2cf26ab1-ae58-4723-ada2-2039eb4bc81e": {
+    "chunks": [
+      {
+        "chunk_id": "2cf26ab1-ae58-4723-ada2-2039eb4bc81e_0",
+        "document_id": "2cf26ab1-ae58-4723-ada2-2039eb4bc81e",
+        "text": "Newton's Laws of Motion\n\nNewton's first law states that an object at rest stays at rest and an\nobject in motion stays in motion unless acted upon by a net external force.\n\nNewton's second law states that force equals mass times acceleration.\nThe formula is F = ma. This is the most commonly used equation in mechanics.\n\nNewton's third law states that for every action there is an equal and\nopposite reaction. If object A exerts a force on object B, then B exerts\nan equal and opposite force on A.\n\nGravitation",
+        "page_number": 1,
+        "chunk_index": 0,
+        "total_chunks": 2,
+        "metadata": {
+          "document_id": "2cf26ab1-ae58-4723-ada2-2039eb4bc81e",
+          "user_id": "test_user_1",
+          "source_path": "C:\\Users\\Shubham\\AppData\\Local\\Temp\\tmp923ermcc.txt",
+          "file_type": "text"
+        }
+      },
+      {
+        "chunk_id": "2cf26ab1-ae58-4723-ada2-2039eb4bc81e_1",
+        "document_id": "2cf26ab1-ae58-4723-ada2-2039eb4bc81e",
+        "text": "rts\nan equal and opposite force on A.\n\nGravitation\n\nThe law of universal gravitation states that every mass attracts every\nother mass. The gravitational force is proportional to the product of the\nmasses and inversely proportional to the square of the distance between them.\nF = G * m1 * m2 / r^2",
+        "page_number": 1,
+        "chunk_index": 1,
+        "total_chunks": 2,
+        "metadata": {
+          "document_id": "2cf26ab1-ae58-4723-ada2-2039eb4bc81e",
+          "user_id": "test_user_1",
+          "source_path": "C:\\Users\\Shubham\\AppData\\Local\\Temp\\tmp923ermcc.txt",
+          "file_type": "text"
+        }
+      }
+    ],
+    "user_id": "test_user_1"
+  }
+}
