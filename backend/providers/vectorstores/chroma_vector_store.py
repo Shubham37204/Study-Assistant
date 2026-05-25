@@ -1,15 +1,25 @@
-from __future__ import annotations
+# backend/providers/vectorstores/chroma_vector_store.py
+from __future__ import annotations  # ← MUST be line 1, was after import
+
+import logging
 from typing import Any
+
 import chromadb
-from chromadb import Collection 
-from schemas.chunk import Chunk 
+from chromadb import Collection
+
+from config import settings
+from providers.vectorstores.base import BaseVectorStore
+from schemas.chunk import Chunk
+
+logger = logging.getLogger(__name__)  # ← was missing, caused NameError
 
 
-class VectorStore:
+class ChromaVectorStore(BaseVectorStore):
     COLLECTION_NAME = "study_assistant_chunks"
 
-    def __init__(self, persist_directory: str = "./chroma_db") -> None:
-        self.client = chromadb.PersistentClient(path=persist_directory)
+    def __init__(self, persist_directory: str | None = None) -> None:
+        path = persist_directory or settings.chroma_path
+        self.client = chromadb.PersistentClient(path=path)
         self.collection: Collection = self.client.get_or_create_collection(
             name=self.COLLECTION_NAME,
             metadata={"hnsw:space": "cosine"},
@@ -55,28 +65,28 @@ class VectorStore:
     ) -> list[dict[str, Any]]:
         where_filter = self._build_where_filter(filters)
 
-        query_kwargs: dict[str, Any] = {
-            "query_embeddings": [embedding],
-            "n_results": top_k,
-            "include": ["documents", "metadatas", "distances"],
-        }
-
-        # only pass where if non-empty — ChromaDB rejects {}
-        if where_filter:
-            query_kwargs["where"] = where_filter
-
         try:
-            results = self.collection.query(**query_kwargs)
+            results = self.collection.query(
+                query_embeddings=[embedding],
+                n_results=top_k,
+                where=where_filter or None,
+                include=["documents", "metadatas", "distances"],
+            )
         except Exception:
-            # n_results > collection size raises in ChromaDB
-            # degrade gracefully: return empty, caller handles it
-            return []
+            # covers: n_results > collection size, empty where, any chroma error
+            logger.warning("ChromaDB query failed. Returning empty results.")
+            return []  # ← always degrade, never crash caller
 
         return self._map_query_results(results)
 
-    def delete_document(self, document_id: str) -> None:
+    def delete_document(self, document_id: str, user_id: str) -> None:
         self.collection.delete(
-            where={"document_id": {"$eq": document_id}},
+            where={
+                "$and": [
+                    {"document_id": {"$eq": document_id}},
+                    {"user_id": {"$eq": user_id}},
+                ]
+            }
         )
 
     @staticmethod
@@ -111,16 +121,16 @@ class VectorStore:
         for chunk_id, document, metadata, distance in zip(
             ids, documents, metadatas, distances, strict=True
         ):
-            page_number_raw = metadata.get("page_number") if metadata else None
+            metadata = metadata or {}
+            page_number_raw = metadata.get("page_number")
             page_number = int(page_number_raw) if page_number_raw else None
 
             mapped.append({
                 "chunk_id": chunk_id,
-                "document_id": metadata.get("document_id", "") if metadata else "",
+                "document_id": metadata.get("document_id", ""),
                 "text": document,
                 "page_number": page_number,
                 "score": 1.0 - float(distance),
             })
 
         return mapped
-    

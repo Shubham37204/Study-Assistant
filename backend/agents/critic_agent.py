@@ -1,10 +1,11 @@
 from __future__ import annotations
 import logging
-import os
-from groq import Groq
 from pydantic import Field
+from config import settings
+from providers.llm.base import BaseLLMProvider, LLMProviderError
 from schemas.graph import GraphState
 from schemas.ingestion import StrictBaseModel
+
 logger = logging.getLogger(__name__)
 
 class CriticResponse(StrictBaseModel):
@@ -13,46 +14,28 @@ class CriticResponse(StrictBaseModel):
 
 
 class CriticAgent:
-    MODEL = "llama-3.1-8b-instant"
     MAX_TOKENS = 400
-    CONFIDENCE_THRESHOLD = 0.6
     MAX_CHUNKS_FOR_CRITIC = 3
 
-    def __init__(self) -> None:
-        api_key = os.getenv("GROQ_API_KEY")
-
-        if not api_key:
-            logger.warning("GROQ_API_KEY is not set. Critic agent will skip LLM checks.")
-            self.client: Groq | None = None
-            return
-
-        self.client = Groq(api_key=api_key)
+    def __init__(self, llm: BaseLLMProvider) -> None:
+        self.llm = llm
 
     def run(self, state: GraphState) -> dict:
-        confidence = float(state.get("confidence", 0.0))
         chunks = state.get("retrieved_chunks", [])
         retry_count = state.get("retry_count", 0)
 
-        if confidence >= self.CONFIDENCE_THRESHOLD and chunks:
+        if not chunks:
             return {
-                "is_grounded": True,
-                "critic_issues": [],
-                "retry_count": retry_count,
-            }
-
-        if self.client is None:
-            return {
-                "is_grounded": True,
-                "critic_issues": [],
-                "retry_count": retry_count,
+                "is_grounded": False,
+                "critic_issues": ["No retrieved chunks were available to support the answer."],
+                "retry_count": retry_count + 1,
             }
 
         answer = state.get("answer", "")
         formatted_chunks = self._format_chunks_for_critic(state)
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.MODEL,
+            content = self.llm.complete(
                 messages=[
                     {
                         "role": "system",
@@ -63,11 +46,10 @@ class CriticAgent:
                         "content": f"Answer: {answer}\n\nSources:\n{formatted_chunks}",
                     },
                 ],
+                model=settings.llm_model_fast,
+                max_tokens=self.MAX_TOKENS,
                 temperature=0,
-                max_completion_tokens=self.MAX_TOKENS,
             )
-
-            content = response.choices[0].message.content
 
             if not content:
                 return self._grounded_fallback(retry_count)
@@ -82,6 +64,10 @@ class CriticAgent:
                 "critic_issues": parsed.issues,
                 "retry_count": retry_count + 1,
             }
+
+        except LLMProviderError:
+            logger.exception("Critic LLM call failed. Assuming answer is grounded.")
+            return self._grounded_fallback(retry_count)
 
         except Exception:
             logger.exception("Critic failed. Assuming answer is grounded.")
@@ -132,4 +118,3 @@ Rules:
 - issues must be an empty list if grounded.
 - issues must contain specific problems if not grounded.
 """.strip()
-    

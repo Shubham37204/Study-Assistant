@@ -85,3 +85,40 @@ Thumbs.db
 *.bak
 tmp/
 temp/
+
+chroma_db/
+bm25_index/
+study_assistant.db
+uploads/
+*.db
+.env
+
+# Additional ignores added by Copilot
+# Generic env patterns
+.env.*
+
+# Python version and local packages
+.python-version
+__pypackages__/
+
+# Virtual environments (additional common names)
+.venv/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Packaging / build metadata
+pip-wheel-metadata/
+wheelhouse/
+
+# Local tooling
+.envrc
+.ropeproject/
+
+# Secrets and certs
+*.pem
+*.key
+*.crt
+
+# Misc
+celerybeat-schedule

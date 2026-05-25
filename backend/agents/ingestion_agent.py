@@ -1,7 +1,10 @@
 from __future__ import annotations
+
+import logging
 import uuid
 from pathlib import Path
 from typing import Any
+
 from core.extractors.base_extractor import BaseExtractor
 from core.extractors.image_extractor import ImageExtractor
 from core.extractors.link_extractor import LinkExtractor
@@ -11,7 +14,8 @@ from core.file_detector import FileDetector
 from core.summarizer import DocumentSummarizer
 from core.text_cleaner import TextCleaner
 from db.repository import DocumentRepository
-from schemas.ingestion import (   # ← fixed
+from providers.llm.base import BaseLLMProvider          # ← NEW import
+from schemas.ingestion import (
     DocumentSummary,
     ExtractedDocument,
     FileType,
@@ -19,8 +23,10 @@ from schemas.ingestion import (   # ← fixed
     IngestionResult,
 )
 
+logger = logging.getLogger(__name__)
 
-class UnsupportedFileTypeError(Exception):  # ← defined here, not imported from self
+
+class UnsupportedFileTypeError(Exception):
     def __init__(self, file_type: str, source: str | Path) -> None:
         self.file_type = file_type
         self.source = str(source)
@@ -31,19 +37,20 @@ class IngestionAgent:
     def __init__(
         self,
         repository: DocumentRepository,
+        llm: BaseLLMProvider,                           # ← NEW param
         chunker: Any,
         embedder: Any,
         vector_store: Any,
-        bm25_store: Any,
+        keyword_store: Any,                             # ← renamed from bm25_store
     ) -> None:
         self.detector = FileDetector()
         self.cleaner = TextCleaner()
-        self.summarizer = DocumentSummarizer()
+        self.summarizer = DocumentSummarizer(llm=llm)   # ← fixed: inject llm
         self.repository = repository
         self.chunker = chunker
         self.embedder = embedder
         self.vector_store = vector_store
-        self.bm25_store = bm25_store
+        self.keyword_store = keyword_store              # ← renamed
 
         self._extractors: dict[FileType, BaseExtractor] = {
             FileType.PDF: PDFExtractor(),
@@ -96,7 +103,7 @@ class IngestionAgent:
                 },
             )
 
-            self.bm25_store.add(
+            self.keyword_store.add(                     # ← renamed
                 document_id=document_id,
                 chunks=chunks,
             )
@@ -121,6 +128,7 @@ class IngestionAgent:
             return result
 
         except Exception as exc:
+            logger.exception("Ingestion failed. source=%s", source)
             errors.append(
                 IngestionError(
                     stage="unknown",
@@ -140,11 +148,7 @@ class IngestionAgent:
 
     def _clean_document(self, doc: ExtractedDocument) -> ExtractedDocument:
         cleaned_pages = [self.cleaner.clean(page) for page in doc.pages]
-
-        return doc.model_copy(
-            update={"pages": cleaned_pages}
-            # removed: "total_pages" — computed_field, derived from pages automatically
-        )
+        return doc.model_copy(update={"pages": cleaned_pages})
 
     @staticmethod
     def _get_file_name(source: str | Path) -> str:
@@ -160,3 +164,4 @@ class IngestionAgent:
             key_topics=[],
             estimated_difficulty="beginner",
         )
+    

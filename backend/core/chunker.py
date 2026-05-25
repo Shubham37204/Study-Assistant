@@ -1,10 +1,14 @@
 from __future__ import annotations
-from schemas.chunk import Chunk              
-from schemas.ingestion import ExtractedPage 
+
+from config import settings
+from schemas.chunk import Chunk
+from schemas.ingestion import ExtractedPage
+
 
 class Chunker:
-    CHUNK_SIZE = 512
-    CHUNK_OVERLAP = 50
+    def __init__(self) -> None:
+        self.chunk_size = settings.chunk_size
+        self.chunk_overlap = settings.chunk_overlap
 
     def chunk(
         self,
@@ -41,9 +45,10 @@ class Chunker:
         segments: list[str] = []
 
         for paragraph in paragraphs:
-            if len(paragraph) <= self.CHUNK_SIZE:
+            if len(paragraph) <= self.chunk_size:
                 segments.append(paragraph)
                 continue
+
             segments.extend(self._split_long_paragraph(paragraph))
 
         return segments
@@ -62,20 +67,22 @@ class Chunker:
             if not sentence.endswith("."):
                 sentence = f"{sentence}."
 
-            if len(sentence) > self.CHUNK_SIZE:
+            if len(sentence) > self.chunk_size:
                 if current_text:
                     segments.append(current_text.strip())
                     current_text = ""
+
                 segments.extend(self._split_long_text(sentence))
                 continue
 
             candidate = self._join_text(current_text, sentence)
 
-            if len(candidate) <= self.CHUNK_SIZE:
+            if len(candidate) <= self.chunk_size:
                 current_text = candidate
             else:
                 if current_text:
                     segments.append(current_text.strip())
+
                 current_text = sentence
 
         if current_text.strip():
@@ -88,10 +95,12 @@ class Chunker:
         start = 0
 
         while start < len(text):
-            end = start + self.CHUNK_SIZE
+            end = start + self.chunk_size
             segment = text[start:end].strip()
+
             if segment:
                 segments.append(segment)
+
             start = end
 
         return segments
@@ -103,6 +112,7 @@ class Chunker:
         metadata: dict[str, str],
     ) -> list[Chunk]:
         chunks: list[Chunk] = []
+
         current_text = ""
         current_page: int | None = None
         chunk_index = 0
@@ -110,10 +120,12 @@ class Chunker:
         for segment, page_number in segments:
             candidate = self._join_text(current_text, segment)
 
-            if len(candidate) <= self.CHUNK_SIZE:
+            if len(candidate) <= self.chunk_size:
                 current_text = candidate
+
                 if current_page is None:
                     current_page = page_number
+
                 continue
 
             if current_text.strip():
@@ -128,7 +140,7 @@ class Chunker:
                 )
                 chunk_index += 1
 
-            overlap_text = current_text[-self.CHUNK_OVERLAP:] if current_text else ""
+            overlap_text = current_text[-self.chunk_overlap :] if current_text else ""
             current_text = self._join_text(overlap_text, segment)
             current_page = page_number
 
@@ -149,10 +161,13 @@ class Chunker:
     def _join_text(left: str, right: str) -> str:
         left = left.strip()
         right = right.strip()
+
         if not left:
             return right
+
         if not right:
             return left
+
         return f"{left}\n\n{right}"
 
     @staticmethod

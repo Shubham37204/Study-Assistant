@@ -1,9 +1,13 @@
 from __future__ import annotations
+
 import logging
-import os
-from groq import Groq
+
+from config import settings
+from providers.llm.base import BaseLLMProvider, LLMProviderError
 from schemas.ingestion import DocumentSummary, ExtractedDocument
+
 logger = logging.getLogger(__name__)
+
 
 class SummarizerError(Exception):
     def __init__(self, reason: str) -> None:
@@ -17,15 +21,10 @@ class SummarizerError(Exception):
 class DocumentSummarizer:
     MAX_CHARS_DIRECT = 6000
     MAX_CHARS_MAPREDUCE = 60000
-    MODEL = "llama-3.1-8b-instant"
+    MAX_TOKENS = 400
 
-    def __init__(self) -> None:
-        api_key = os.getenv("GROQ_API_KEY")
-
-        if not api_key:
-            raise SummarizerError("GROQ_API_KEY environment variable is not set")
-
-        self.client = Groq(api_key=api_key)
+    def __init__(self, llm: BaseLLMProvider) -> None:
+        self.llm = llm
 
     def summarize(self, doc: ExtractedDocument) -> DocumentSummary:
         text = self._join_page_text(doc)
@@ -50,27 +49,34 @@ class DocumentSummarizer:
         return self._summarize_truncated(doc)
 
     def _summarize_direct(self, text: str) -> DocumentSummary:
-        response = self.client.chat.completions.create(
-            model=self.MODEL,
-            messages=[
-                {
-                    "role": "system",
-                    "content": self._build_system_prompt(),
-                },
-                {
-                    "role": "user",
-                    "content": text,
-                },
-            ],
-            temperature=0,
-        )
+        try:
+            content = self.llm.complete(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": self._build_system_prompt(),
+                    },
+                    {
+                        "role": "user",
+                        "content": text,
+                    },
+                ],
+                model=settings.llm_model_fast,
+                max_tokens=self.MAX_TOKENS,
+                temperature=0,
+            )
 
-        content = response.choices[0].message.content
+        except LLMProviderError as exc:
+            raise SummarizerError(str(exc)) from exc
 
         if not content:
-            raise SummarizerError("Groq returned an empty summary response")
+            raise SummarizerError("LLM returned an empty summary response")
 
-        return DocumentSummary.model_validate_json(content)
+        try:
+            return DocumentSummary.model_validate_json(content)
+
+        except Exception as exc:
+            raise SummarizerError(f"Failed to parse summary JSON: {exc}") from exc
 
     def _summarize_truncated(self, doc: ExtractedDocument) -> DocumentSummary:
         truncated_text = "\n\n".join(
@@ -110,3 +116,4 @@ Rules:
 - key_topics must contain the most important topics from the document.
 - estimated_difficulty must be exactly one of: beginner, intermediate, advanced.
 """.strip()
+    

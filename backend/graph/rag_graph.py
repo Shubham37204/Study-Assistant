@@ -1,38 +1,44 @@
 from __future__ import annotations
+
 import logging
 from typing import Any
+
 from langgraph.graph import END, StateGraph
+
 from agents.critic_agent import CriticAgent
 from agents.generation_agent import GenerationAgent
 from agents.planning_agent import PlanningAgent
 from agents.query_agent import QueryUnderstandingAgent
 from agents.retrieval_agent import RetrievalAgent
+from config import settings
+from providers.embeddings.base import BaseEmbedder
+from providers.keyword.base import BaseKeywordStore
+from providers.llm.base import BaseLLMProvider
+from providers.vectorstores.base import BaseVectorStore
 from schemas.graph import GraphState
 
 logger = logging.getLogger(__name__)
-
-MAX_RETRIES = 2
 
 
 class RAGGraph:
     def __init__(
         self,
-        embedder: Any,
-        vector_store: Any,
-        bm25_store: Any,
+        llm: BaseLLMProvider,
+        embedder: BaseEmbedder,
+        vector_store: BaseVectorStore,
+        keyword_store: BaseKeywordStore,
         reranker: Any,
     ) -> None:
-        self.query_agent = QueryUnderstandingAgent()
+        self.query_agent = QueryUnderstandingAgent(llm=llm)
         self.planning_agent = PlanningAgent()
         self.retrieval_agent = RetrievalAgent(
             embedder=embedder,
             vector_store=vector_store,
-            bm25_store=bm25_store,
+            bm25_store=keyword_store,
             reranker=reranker,
         )
-        self.generation_agent = GenerationAgent()
-        self.critic_agent = CriticAgent()
-
+        self.generation_agent = GenerationAgent(llm=llm)
+        self.critic_agent = CriticAgent(llm=llm)
         self.graph = self._build_graph()
 
     def _build_graph(self) -> Any:
@@ -69,11 +75,11 @@ class RAGGraph:
         is_grounded = state.get("is_grounded", True)
         retry_count = state.get("retry_count", 0)
 
-        if not is_grounded and retry_count < MAX_RETRIES:
+        if not is_grounded and retry_count < settings.critic_max_retries:
             logger.info(
                 "Retrying retrieval after critic failure. retry_count=%s max_retries=%s",
                 retry_count,
-                MAX_RETRIES,
+                settings.critic_max_retries,
             )
             return "retrieval"
 
