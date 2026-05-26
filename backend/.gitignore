@@ -22,9 +22,12 @@ wheels/
 MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
+.python-version
+__pypackages__/
 
 # Virtual environments
 venv/
+.venv/
 env/
 ENV/
 env.bak/
@@ -44,7 +47,8 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
-.env.*.local
+.env.*
+.envrc
 
 # Database
 *.db
@@ -77,33 +81,6 @@ uploads/
 media/
 static/collected_static/
 
-# OS files
-.DS_Store
-Thumbs.db
-
-# Project specific
-*.bak
-tmp/
-temp/
-
-chroma_db/
-bm25_index/
-study_assistant.db
-uploads/
-*.db
-.env
-
-# Additional ignores added by Copilot
-# Generic env patterns
-.env.*
-
-# Python version and local packages
-.python-version
-__pypackages__/
-
-# Virtual environments (additional common names)
-.venv/
-
 # Jupyter notebooks
 .ipynb_checkpoints/
 
@@ -112,7 +89,6 @@ pip-wheel-metadata/
 wheelhouse/
 
 # Local tooling
-.envrc
 .ropeproject/
 
 # Secrets and certs
@@ -122,3 +98,12 @@ wheelhouse/
 
 # Misc
 celerybeat-schedule
+
+# Project specific
+*.bak
+tmp/
+temp/
+
+chroma_db/
+bm25_index/
+study_assistant.db
