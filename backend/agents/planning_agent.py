@@ -11,6 +11,7 @@ class PlanningAgent:
         "explain": "vector_only",
         "summarize": "vector_only",
         "compare": "hybrid",
+        "greeting":  "vector_only",
     }
     DEFAULT_SEARCH_TYPE: SearchType = "hybrid"
 

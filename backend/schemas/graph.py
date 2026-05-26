@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Literal, TypedDict
 from schemas.retrieval import ChunkResult, SearchQuery
 
-Intent = Literal["factual", "summarize", "explain", "compare"]
+Intent = Literal["factual", "summarize", "explain", "compare", "greeting"]
 
 class Citation(TypedDict):
     chunk_id: str
