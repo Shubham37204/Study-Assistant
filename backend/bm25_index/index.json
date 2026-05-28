@@ -83,5 +83,38 @@
       }
     ],
     "user_id": "test_user_1"
+  },
+  "ed41d960-9dc4-4c6f-980e-16eaf817ff45": {
+    "chunks": [
+      {
+        "chunk_id": "ed41d960-9dc4-4c6f-980e-16eaf817ff45_0",
+        "document_id": "ed41d960-9dc4-4c6f-980e-16eaf817ff45",
+        "text": "ASHIMA ANAND\nÓ +91-8307197101\nR ashima2031@gmail.com\n° Ashima Anand\nEDUCATION\nIndian Institute of Information Technology, Allahabad\nPresent\nB.Tech - CGPA - 8.43\nPrayagraj, India\nEXPERIENCE\nGoldman Sachs (Summer Analyst)\n- Front-End Feature Development: As a member of the Controllers division, I contributed to various\naspects of technical operations.\n\nImplemented a new feature on the UI using React and Redux.\n- Backend Functionality Implementation: Developed the feature’s functionality in Java backend,\ncreated test cases with Mockito, and learned about Jest and GitLab.\nFlipkart (SDE Intern)\n- Docker Image Creation: Developed and managed Docker images to containerize the service for consistent\ndeployment across environments.(DevOps)\n- Helm Charts Formulation: Created and configured Helm Charts to facilitate efficient service deployment\nand management within the Kubernetes ecosystem.\n- CI/CD Pipeline Maintenance: Maintained and optimized Continuous Integration/Continuous\nDeployment pipelines to ensure seamless and automated deployment processes.\n- Kubernetes Onboarding: Successfully onboarded the service onto Kubernetes infrastructure, ensuring\nscalable and reliable deployment within the container orchestration platform.(Google Cloud)\n- Phasing Out Legacy Database Vertica: My responsibilities included evaluating alternative solutions,\nassisting in the migration planning, and supporting the implementation process.\nDesis Ascend Educare Program (D.E Shaw)\n- I was selected as one of the 40 female candidates from across the nation for the DESIS Ascend Educare\nProgram 2022 at The D.E.\n\nShaw.\n- Project- ServerApp W | My team won THIRD place in project building competition.",
+        "page_number": 1,
+        "chunk_index": 0,
+        "total_chunks": 2,
+        "metadata": {
+          "document_id": "ed41d960-9dc4-4c6f-980e-16eaf817ff45",
+          "user_id": "user_3EIDXjH2t5D1Fq1NyLxAqTQYlNH",
+          "source_path": "uploads\\80f24813-3f96-48d1-bd14-f3dcd0d71440.pdf",
+          "file_type": "pdf"
+        }
+      },
+      {
+        "chunk_id": "ed41d960-9dc4-4c6f-980e-16eaf817ff45_1",
+        "document_id": "ed41d960-9dc4-4c6f-980e-16eaf817ff45",
+        "text": "nation for the DESIS Ascend Educare\nProgram 2022 at The D.E.\n\nShaw.\n- Project- ServerApp W | My team won THIRD place in project building competition.\n\nThe aim of the\nproject was to build an on premises server application, primarily to store and manage employee data and allow\nthem to perform activities like Chat, Email, Workspace , Calendar and manage To-Do List.\n\nUsed Django,\nJavaScript, HTML, CSS.\nPROJECTS\nEmaily Full Stack W |\n- Developed a web application for product managers and startup owners to simplify feedback collection,\nfeaturing a dynamic React.js frontend with Redux for state management.\n- Implemented a secure Node.js backend with Express.js, Passport.js for authentication, and Stripe for\npayment processing.\n- Utilized MongoDB for database, eMailer.js for email surveys, and Google OAuth for user authentication.\nE-Commerce Store W |\n- Developed a scalable, secure, and feature-rich e-commerce platform using the MERN (MongoDB,\nExpress.Js, React, and Node.Js) stack.\n- Ensured a seamless shopping experience for users and provided robust management tools for administrators.\n- Integrated essential e-commerce functionalities for robust performance and feature integration.\nACHIEVEMENTS\n- Selected as a finalist in Google Girl Hackathon 2024.\n- Contributed in Google Developer Solution Challenge.\n\nCertificate\n- Contributed in Google Arcade 2024 which boosted my Google Cloud skills.\n\nBadges\n- Secured 1st position in HULT 2022-Start Up Idea presenting competition.\n- Secured global rank-232 in Starters 74 Division 4 and global rank-294 in February Cook-Off 2023 Division 4.\n- Participated in Google Kickstart Round A 2023.\nPOSITION OF RESPONSIBILITY\n- PLACEMENT COORDINATOR Responsible for planning and execution of the Placement Process\n2023-24.\n- PRAYAAS (Non-Profitable Organisation) Prayaas is VOLUNTEER movement initiated by student\nfraternity of IIIT Allahabad.",
+        "page_number": 1,
+        "chunk_index": 1,
+        "total_chunks": 2,
+        "metadata": {
+          "document_id": "ed41d960-9dc4-4c6f-980e-16eaf817ff45",
+          "user_id": "user_3EIDXjH2t5D1Fq1NyLxAqTQYlNH",
+          "source_path": "uploads\\80f24813-3f96-48d1-bd14-f3dcd0d71440.pdf",
+          "file_type": "pdf"
+        }
+      }
+    ],
+    "user_id": "user_3EIDXjH2t5D1Fq1NyLxAqTQYlNH"
   }
 }
