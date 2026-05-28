@@ -4,7 +4,7 @@ import asyncio
 import logging
 import uuid
 from pathlib import Path
-
+from middleware.clerk_auth import get_verified_user_id
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 
 from agents.ingestion_agent import IngestionAgent

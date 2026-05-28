@@ -1,39 +1,44 @@
-// src/App.jsx
+// src/App.jsx — updated with React.lazy + Suspense
+// Lazy loading splits DashboardPage into a separate chunk.
+// The auth page loads instantly. Dashboard JS only loads after login.
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
-import AuthPage from './pages/AuthPage'
-import DashboardPage from './pages/DashboardPage'
+import Spinner from './components/ui/Spinner'
 
-// Keeps the route protection logic in one place.
-// Any route wrapped in this redirects to / if the user isn't signed in.
+const AuthPage      = lazy(() => import('./pages/AuthPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+
 function ProtectedRoute({ children }) {
   const { isSignedIn, isLoaded } = useAuth()
-
   if (!isLoaded) return null
-
-  if (!isSignedIn) {
-    return <Navigate to="/" replace />
-  }
-
+  if (!isSignedIn) return <Navigate to="/" replace />
   return children
+}
+
+function PageLoader() {
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <Spinner className="h-5 w-5" />
+    </div>
+  )
 }
 
 function App() {
   return (
-    <Routes>
-      {/* public — the sign-in page */}
-      <Route path="/" element={<AuthPage />} />
-
-      {/* protected — requires auth */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/" element={<AuthPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Suspense>
   )
 }
 
