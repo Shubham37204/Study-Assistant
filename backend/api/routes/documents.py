@@ -1,4 +1,3 @@
-# backend/api/routes/documents.py  (new file)
 from __future__ import annotations
 
 import asyncio
@@ -37,8 +36,6 @@ async def delete_document(
     if doc.user_id != effective_user_id:
         raise HTTPException(status_code=403, detail="Not your document")
 
-    # delete from all three stores — order matters:
-    # vector + keyword first, then SQL (SQL is the source of truth)
     loop = asyncio.get_running_loop()
 
     await loop.run_in_executor(

@@ -1,16 +1,12 @@
-// src/pages/AuthPage.jsx
 import { SignInButton, SignedIn, SignedOut } from '@clerk/clerk-react'
 import { Link } from 'react-router-dom'
 
-// No auto-redirect here — landing page is visible to everyone.
-// SignedIn/SignedOut from Clerk conditionally render based on auth state.
-// SignInButton mode="modal" opens Clerk's sign-in overlay without leaving the page.
 
 function AuthPage() {
   return (
     <div className="min-h-screen bg-white">
 
-      {/* ── nav ─────────────────────────────────────────────── */}
+
       <header className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
         <span className="text-sm font-semibold text-slate-800">
           Study Assistant
@@ -36,7 +32,6 @@ function AuthPage() {
         </div>
       </header>
 
-      {/* ── hero ────────────────────────────────────────────── */}
       <main className="flex flex-col items-center justify-center px-6 py-28 text-center">
         <span className="mb-5 inline-block rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
           RAG · Semantic Search · Grounded Answers
@@ -69,7 +64,6 @@ function AuthPage() {
         </SignedIn>
       </main>
 
-      {/* ── features ────────────────────────────────────────── */}
       <section className="mx-auto grid max-w-2xl grid-cols-1 gap-3 px-6 pb-28 sm:grid-cols-3">
         {features.map((f) => (
           <div key={f.title} className="rounded-xl border border-slate-100 p-5">

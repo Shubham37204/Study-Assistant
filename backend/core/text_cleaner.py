@@ -1,7 +1,7 @@
 from __future__ import annotations
 import re
 import unicodedata
-from schemas.ingestion import ExtractedPage  # ← fixed
+from schemas.ingestion import ExtractedPage 
 
 class TextCleaner:
     STANDALONE_PAGE_NUMBER_PATTERN = re.compile(

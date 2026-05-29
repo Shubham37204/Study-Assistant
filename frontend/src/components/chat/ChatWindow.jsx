@@ -1,4 +1,3 @@
-// src/components/chat/ChatWindow.jsx
 import { useEffect, useRef } from 'react'
 import useAppStore from '@/store/useAppStore'
 import { useChatQuery } from '@/hooks/useQuery'

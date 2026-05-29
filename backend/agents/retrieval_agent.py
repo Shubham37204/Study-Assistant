@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 from core.hybrid_search import HybridSearcher
-from schemas.retrieval import ChunkResult, RetrievalResult, SearchQuery  # ← fixed typo
+from schemas.retrieval import ChunkResult, RetrievalResult, SearchQuery  
 logger = logging.getLogger(__name__)
 
 class RetrievalAgent:

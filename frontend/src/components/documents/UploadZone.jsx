@@ -1,4 +1,3 @@
-// src/components/documents/UploadZone.jsx
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -42,7 +41,6 @@ function UploadZone() {
 
   function handleChange(e) {
     handleFile(e.target.files[0])
-    // reset so the same file can be picked again
     e.target.value = ''
   }
 

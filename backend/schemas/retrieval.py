@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Literal
 from pydantic import Field, model_validator
-from schemas.ingestion import StrictBaseModel  # ← fixed
+from schemas.ingestion import StrictBaseModel  
 
 
 SearchType = Literal["hybrid", "vector_only", "bm25_only"]
@@ -17,7 +17,7 @@ class SearchQuery(StrictBaseModel):
     search_type: SearchType = "hybrid"
 
     @model_validator(mode="after")
-    def validate_fetch_size(self) -> SearchQuery:  # removed redundant quotes, __future__ handles it
+    def validate_fetch_size(self) -> SearchQuery:  
         if self.vector_fetch_k < self.top_k:
             raise ValueError("vector_fetch_k must be >= top_k")
         return self

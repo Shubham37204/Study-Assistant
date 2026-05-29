@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime, timezone  # ← fixed: timezone not UTC
+from datetime import datetime, timezone  
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -20,8 +20,8 @@ class Document(Base):
     short_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     key_topics: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),                        # ← fixed: store tz-aware
-        default=lambda: datetime.now(timezone.utc),     # ← fixed: timezone.utc
+        DateTime(timezone=True),                       
+        default=lambda: datetime.now(timezone.utc),   
         nullable=False,
     )
     status: Mapped[str] = mapped_column(String, nullable=False)

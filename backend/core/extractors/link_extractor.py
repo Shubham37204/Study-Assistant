@@ -1,7 +1,7 @@
 from __future__ import annotations
 import httpx
 import trafilatura
-from schemas.ingestion import ExtractedDocument, ExtractedPage, FileType  # ← fixed
+from schemas.ingestion import ExtractedDocument, ExtractedPage, FileType  
 from .base_extractor import BaseExtractor, ExtractorError
 
 
@@ -47,7 +47,6 @@ class LinkExtractor(BaseExtractor):
             source_path=source_url,
             file_type=FileType.URL,
             pages=[page],
-            # removed: total_pages — computed_field
             title=title,
         )
 

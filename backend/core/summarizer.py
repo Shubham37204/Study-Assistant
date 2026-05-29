@@ -12,7 +12,6 @@ def _summarize_direct(self, text: str) -> DocumentSummary:
     try:
         content = self.llm.complete(...)
     except LLMProviderError as exc:
-        # surface rate limit specifically so you can see it
         if "429" in str(exc) or "rate" in str(exc).lower():
             raise SummarizerError("Groq rate limit hit — wait 30 seconds and retry")
         raise SummarizerError(str(exc)) from exc

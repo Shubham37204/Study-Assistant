@@ -1,6 +1,3 @@
-// src/components/ui/OfflineBanner.jsx
-// Listens to browser online/offline events.
-// Returns null when online so it has zero DOM footprint in normal state.
 import { useState, useEffect } from 'react'
 
 function OfflineBanner() {

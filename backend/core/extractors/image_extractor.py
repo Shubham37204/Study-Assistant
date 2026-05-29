@@ -2,14 +2,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 import easyocr
-from schemas.ingestion import ExtractedDocument, ExtractedPage, FileType  # ← fixed
+from schemas.ingestion import ExtractedDocument, ExtractedPage, FileType 
 from .base_extractor import BaseExtractor, ExtractorError
 
 class ImageExtractor(BaseExtractor):
     CONFIDENCE_THRESHOLD = 0.4
 
     def __init__(self) -> None:
-        self._reader: easyocr.Reader | None = None  # precise type, not Any
+        self._reader: easyocr.Reader | None = None  
 
     @property
     def reader(self) -> easyocr.Reader:
@@ -34,7 +34,6 @@ class ImageExtractor(BaseExtractor):
                 source_path=str(source_path),
                 file_type=FileType.IMAGE,
                 pages=[page],
-                # removed: total_pages — computed_field
                 title=None,
             )
 
@@ -45,11 +44,10 @@ class ImageExtractor(BaseExtractor):
             raise ExtractorError(source_path, str(exc)) from exc
 
     def _join_confident_text(self, results: list[Any]) -> str:
-        # EasyOCR returns list[list], not list[tuple] — Any is honest here
         text_parts: list[str] = []
 
         for result in results:
-            _bbox, text, confidence = result  # explicit unpack, safer than tuple hint
+            _bbox, text, confidence = result 
             if confidence >= self.CONFIDENCE_THRESHOLD:
                 cleaned = text.strip()
                 if cleaned:

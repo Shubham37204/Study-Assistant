@@ -1,4 +1,3 @@
-// src/components/ui/Spinner.jsx
 import { cn } from '@/lib/utils'
 
 function Spinner({ className }) {

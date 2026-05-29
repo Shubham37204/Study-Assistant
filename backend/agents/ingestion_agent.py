@@ -1,4 +1,3 @@
-# backend/agents/ingestion_agent.py — full updated
 from __future__ import annotations
 
 import logging
@@ -65,7 +64,7 @@ class IngestionAgent:
         self,
         source: str | Path,
         user_id: str,
-        original_filename: str | None = None,  # ← original name before UUID rename
+        original_filename: str | None = None, 
     ) -> IngestionResult:
         document_id = str(uuid.uuid4())
         errors: list[IngestionError] = []
@@ -116,7 +115,7 @@ class IngestionAgent:
 
             summary = self.summarizer.summarize(cleaned_doc)
 
-            # use original_filename if provided, fall back to path stem
+            
             display_name = original_filename or self._get_file_name(source)
 
             result = IngestionResult(

@@ -1,4 +1,3 @@
-// src/api/documents.js — full updated
 import apiClient from './client'
 
 export async function uploadDocument(file, userId) {

@@ -1,9 +1,7 @@
-# backend/config.py — update model_config only
 from pathlib import Path
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# absolute path to backend/.env — works no matter where you run uvicorn from
 _ENV_FILE = Path(__file__).resolve().parent / ".env"
 
 class Settings(BaseSettings):
@@ -25,7 +23,7 @@ class Settings(BaseSettings):
     critic_max_retries: int = Field(default=2, ge=0, le=5)
     retrieval_top_k: int = Field(default=5, ge=1, le=20)
     retrieval_fetch_k: int = Field(default=20, ge=5, le=100)
-    clerk_secret_key: str | None = None  # optional — JWT verification skipped if absent
+    clerk_secret_key: str | None = None  
 
     model_config = SettingsConfigDict(
         env_file=str(_ENV_FILE),

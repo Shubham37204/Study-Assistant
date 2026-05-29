@@ -1,4 +1,3 @@
-# backend/schemas/api.py — full updated
 from __future__ import annotations
 
 from typing import Literal
@@ -19,7 +18,6 @@ class UploadResponse(StrictBaseModel):
     errors: list[str] = Field(default_factory=list)
 
 
-# one message in the conversation history
 class ConversationMessage(StrictBaseModel):
     role: Literal["user", "assistant"]
     content: str = Field(..., min_length=1)
@@ -30,7 +28,6 @@ class QueryRequest(StrictBaseModel):
     user_id: str = Field(..., min_length=1)
     document_ids: list[str] = Field(default_factory=list)
     search_type: SearchType = "hybrid"
-    # last N messages for context — frontend sends up to 6 (3 turns)
     conversation_history: list[ConversationMessage] = Field(default_factory=list, max_length=10)
 
 

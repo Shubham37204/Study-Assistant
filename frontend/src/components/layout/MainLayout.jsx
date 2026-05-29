@@ -1,4 +1,3 @@
-// src/components/layout/MainLayout.jsx — updated with ErrorBoundary + OfflineBanner
 import Header from './Header'
 import Sidebar from './Sidebar'
 import ErrorBoundary from '../ui/ErrorBoundary'

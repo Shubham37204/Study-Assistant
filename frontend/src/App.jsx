@@ -1,6 +1,3 @@
-// src/App.jsx — updated with React.lazy + Suspense
-// Lazy loading splits DashboardPage into a separate chunk.
-// The auth page loads instantly. Dashboard JS only loads after login.
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'

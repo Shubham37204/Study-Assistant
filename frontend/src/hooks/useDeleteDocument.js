@@ -1,4 +1,3 @@
-// src/hooks/useDeleteDocument.js  (new file)
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuth } from '@clerk/clerk-react'

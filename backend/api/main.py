@@ -1,4 +1,3 @@
-# backend/api/main.py — add documents router
 from __future__ import annotations
 
 import logging

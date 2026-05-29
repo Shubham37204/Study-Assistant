@@ -28,12 +28,11 @@ class PDFExtractor(BaseExtractor):
                 source_path=str(source_path),
                 file_type=FileType.PDF,
                 pages=pages,
-                # removed: total_pages — now computed_field, extra="forbid" would crash
                 title=title,
             )
 
         except ExtractorError:
-            raise  # don't re-wrap our own errors
+            raise 
 
         except Exception as exc:
             raise ExtractorError(source_path, str(exc)) from exc

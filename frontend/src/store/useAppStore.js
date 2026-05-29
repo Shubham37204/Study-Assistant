@@ -1,12 +1,9 @@
-// src/store/useAppStore.js
-
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 const useAppStore = create(
   persist(
     (set, get) => ({
-      // ── documents ──────────────────────────────────────────
       documents: [],
       selectedDocIds: [],
 
@@ -63,7 +60,6 @@ const useAppStore = create(
           selectedDocIds: [],
         }),
 
-      // ── messages ───────────────────────────────────────────
       messages: [],
 
       addMessage: (message) =>
@@ -81,7 +77,6 @@ const useAppStore = create(
           messages: [],
         }),
 
-      // ── helpers ────────────────────────────────────────────
       getSelectedDocuments: () => {
         const { documents, selectedDocIds } = get()
 
@@ -93,7 +88,6 @@ const useAppStore = create(
     {
       name: 'study-assistant',
 
-      // persist only required state
       partialize: (state) => ({
         documents: state.documents,
         selectedDocIds: state.selectedDocIds,

@@ -1,11 +1,8 @@
-# backend/graph/rag_graph.py — full updated
 from __future__ import annotations
 
 import logging
 from typing import Any
-
 from langgraph.graph import END, StateGraph
-
 from agents.critic_agent import CriticAgent
 from agents.generation_agent import GenerationAgent
 from agents.planning_agent import PlanningAgent
@@ -106,13 +103,13 @@ class RAGGraph:
         user_id: str,
         query_text: str,
         document_ids: list[str] | None = None,
-        conversation_history: list[dict] | None = None,  # ← new param
+        conversation_history: list[dict] | None = None, 
     ) -> dict:
         initial_state: GraphState = {
             "user_id":              user_id,
             "query_text":           query_text,
             "document_ids":         document_ids or [],
-            "conversation_history": conversation_history or [],  # ← passed into state
+            "conversation_history": conversation_history or [], 
             "retry_count":          0,
             "needs_retrieval":      True,
             "retrieved_chunks":     [],

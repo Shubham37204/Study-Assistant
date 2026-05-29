@@ -1,4 +1,3 @@
-// src/api/query.js — full updated
 import apiClient from './client'
 
 export async function sendQuery({

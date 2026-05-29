@@ -1,4 +1,3 @@
-// src/components/chat/MessageBubble.jsx
 import { cn } from '@/lib/utils'
 import CitationList from './CitationList'
 import IntentBadge from './IntentBadge'

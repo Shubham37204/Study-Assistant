@@ -1,6 +1,3 @@
-// src/components/documents/DocumentDetail.jsx
-// Appears on hover — shows summary and topics extracted during ingestion
-
 function DocumentDetail({ doc }) {
   return (
     <div className="absolute left-full top-0 z-20 ml-2 w-64 rounded-xl border border-slate-200 bg-white p-4 shadow-lg">

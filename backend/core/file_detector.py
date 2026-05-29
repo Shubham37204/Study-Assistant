@@ -17,7 +17,6 @@ class FileDetector:
         "image/bmp": FileType.IMAGE,
     }
 
-    # explicit suffix map for types mimetypes misses cross-platform
     EXTENSION_FALLBACK: dict[str, FileType] = {
         ".md": FileType.MARKDOWN,
         ".markdown": FileType.MARKDOWN,

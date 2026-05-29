@@ -1,4 +1,3 @@
-# backend/providers/llm/groq_provider.py
 from __future__ import annotations
 
 from groq import APIError, APIStatusError, Groq
@@ -31,7 +30,6 @@ class GroqProvider(BaseLLMProvider):
             return response.choices[0].message.content or ""
 
         except APIStatusError as exc:
-            # 429 = rate limit — surface clearly so callers can retry or inform user
             if exc.status_code == 429:
                 raise LLMProviderError(
                     self.PROVIDER_NAME,

@@ -1,4 +1,3 @@
-# backend/api/routes/upload.py — full updated (passes original_filename)
 from __future__ import annotations
 
 import asyncio
@@ -57,7 +56,7 @@ async def upload_file(
             lambda: ingestion_agent.run(
                 source=save_path,
                 user_id=effective_user_id,
-                original_filename=original_filename,  # ← passed here
+                original_filename=original_filename,  
             ),
         )
     finally:

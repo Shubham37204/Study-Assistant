@@ -1,6 +1,3 @@
-// src/components/ui/ErrorBoundary.jsx
-// Class component — error boundaries can't be hooks in React 18.
-// Wraps sidebar and chat area independently so one crashing doesn't kill the other.
 import { Component } from 'react'
 
 class ErrorBoundary extends Component {

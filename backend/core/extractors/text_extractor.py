@@ -11,7 +11,6 @@ class TextExtractor(BaseExtractor):
         source_path = Path(source)
 
         try:
-            # errors="replace" → never crashes on encoding edge cases
             raw_text = source_path.read_text(encoding="utf-8", errors="replace")
 
             suffix = source_path.suffix.lower()
@@ -29,7 +28,7 @@ class TextExtractor(BaseExtractor):
                 source_path=str(source_path),
                 file_type=file_type,
                 pages=[page],
-                title=source_path.stem,  # filename without extension as title
+                title=source_path.stem,  
             )
 
         except ExtractorError:

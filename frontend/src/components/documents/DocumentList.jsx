@@ -1,4 +1,3 @@
-// src/components/documents/DocumentList.jsx
 import useAppStore from '@/store/useAppStore'
 import DocumentItem from './DocumentItem'
 

@@ -4,7 +4,7 @@ from uuid import uuid4
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from db.models import Document, Page
-from schemas.ingestion import ExtractedDocument, IngestionResult  # ← fixed
+from schemas.ingestion import ExtractedDocument, IngestionResult 
 
 class DocumentRepository:
     def __init__(self, db: Session) -> None:

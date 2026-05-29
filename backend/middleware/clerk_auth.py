@@ -1,4 +1,3 @@
-# backend/middleware/clerk_auth.py
 import os
 import httpx
 from jose import jwt, JWTError
@@ -15,7 +14,6 @@ async def _fetch_jwks() -> dict:
         return _jwks_cache
 
     if not settings.clerk_secret_key:
-        # JWT verification disabled — dev mode
         return {"keys": []}
 
     async with httpx.AsyncClient() as client:
@@ -32,7 +30,6 @@ async def _fetch_jwks() -> dict:
 async def get_verified_user_id(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
 ) -> str | None:
-    # if no token present, return None — routes decide if auth is required
     if not credentials:
         return None
 

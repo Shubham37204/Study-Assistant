@@ -1,4 +1,3 @@
-// src/components/chat/QueryInput.jsx
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import useAppStore from '@/store/useAppStore'
@@ -21,7 +20,6 @@ function QueryInput({ onSubmit, isLoading }) {
     }
   }
 
-  // auto-resize textarea as user types
   function handleInput(e) {
     e.target.style.height = 'auto'
     e.target.style.height = `${e.target.scrollHeight}px`

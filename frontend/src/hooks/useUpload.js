@@ -1,4 +1,3 @@
-// src/hooks/useUpload.js
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuth } from '@clerk/clerk-react'
@@ -16,7 +15,6 @@ export function useUpload() {
     },
 
     onMutate: () => {
-      // using a fixed id replaces the toast in-place (loading → success/error)
       toast.loading('Processing document...', { id: 'upload' })
     },
 

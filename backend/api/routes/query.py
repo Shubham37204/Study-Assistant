@@ -1,4 +1,3 @@
-# backend/api/routes/query.py — full updated
 from __future__ import annotations
 
 import asyncio
@@ -59,3 +58,4 @@ async def query_documents(
                 detail="Failed to process query",
             ).model_dump(),
         )
+    

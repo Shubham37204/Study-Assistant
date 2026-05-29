@@ -1,4 +1,3 @@
-// src/hooks/useQuery.js — full updated
 import { useMutation } from '@tanstack/react-query'
 import { useAuth } from '@clerk/clerk-react'
 import { sendQuery } from '../api/query'
@@ -10,7 +9,6 @@ export function useChatQuery() {
 
   return useMutation({
     mutationFn: (queryText) => {
-      // pass last 6 messages (3 turns) so the LLM understands follow-up questions
       const history = messages.slice(-6)
       return sendQuery({
         queryText,

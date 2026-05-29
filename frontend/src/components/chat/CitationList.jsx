@@ -1,4 +1,3 @@
-// src/components/chat/CitationList.jsx
 import { useState } from 'react'
 import CitationCard from './CitationCard'
 

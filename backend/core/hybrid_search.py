@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-
 from schemas.retrieval import ChunkResult, SearchQuery
-
 
 class HybridSearcher:
     RRF_K = 60

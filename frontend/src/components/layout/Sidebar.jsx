@@ -1,4 +1,3 @@
-// src/components/layout/Sidebar.jsx — updated
 import UploadZone from '../documents/UploadZone'
 import DocumentList from '../documents/DocumentList'
 

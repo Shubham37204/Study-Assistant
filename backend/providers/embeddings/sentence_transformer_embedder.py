@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from typing import cast
-
 from sentence_transformers import SentenceTransformer
-
 from config import settings
 from providers.embeddings.base import BaseEmbedder
 

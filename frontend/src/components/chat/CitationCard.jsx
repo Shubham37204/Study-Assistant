@@ -1,4 +1,3 @@
-// src/components/chat/CitationCard.jsx
 function CitationCard({ citation, index }) {
   return (
     <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">

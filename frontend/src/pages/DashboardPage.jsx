@@ -1,4 +1,3 @@
-// src/pages/DashboardPage.jsx — final
 import MainLayout from '../components/layout/MainLayout'
 import ChatWindow from '../components/chat/ChatWindow'
 

@@ -1,4 +1,3 @@
-# backend/agents/generation_agent.py — full updated
 from __future__ import annotations
 
 import json
@@ -30,11 +29,10 @@ class GenerationAgent:
         context_str = self._build_context(chunks)
         history = state.get("conversation_history", [])
 
-        # build message list — history goes between system and current question
+
         messages = [{"role": "system", "content": self._build_system_prompt()}]
 
-        # inject last few turns so LLM understands follow-up questions
-        for turn in history[-6:]:  # max 3 Q&A pairs
+        for turn in history[-6:]:  
             messages.append({"role": turn["role"], "content": turn["content"]})
 
         messages.append({

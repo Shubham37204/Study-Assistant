@@ -1,4 +1,3 @@
-// src/components/documents/DocumentItem.jsx — full updated with delete
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import useAppStore from '@/store/useAppStore'
@@ -56,7 +55,6 @@ function DocumentItem({ doc }) {
         </div>
       </div>
 
-      {/* delete button — only shows on hover */}
       {hovered && !deleting && (
         <button
           onClick={handleDelete}

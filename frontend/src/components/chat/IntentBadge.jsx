@@ -1,4 +1,3 @@
-// src/components/chat/IntentBadge.jsx
 import { cn } from '@/lib/utils'
 
 const styles = {

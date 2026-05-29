@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime, timezone   # ← fixed
+from datetime import datetime, timezone 
 from enum import Enum
 from typing import Literal
 
@@ -37,7 +37,7 @@ class IngestionError(StrictBaseModel):
     page_number: int | None = Field(default=None, ge=1)
     recoverable: bool = True
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)  # ← fixed
+        default_factory=lambda: datetime.now(timezone.utc)  
     )
 
 
@@ -58,10 +58,10 @@ class ExtractedDocument(StrictBaseModel):
     pages: list[ExtractedPage] = Field(default_factory=list)
     title: str | None = Field(default=None, max_length=300)
     extracted_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)  # ← fixed
+        default_factory=lambda: datetime.now(timezone.utc) 
     )
 
-    @computed_field                       # ← fixed: derived, never drifts
+    @computed_field                      
     @property
     def total_pages(self) -> int:
         return len(self.pages)
@@ -105,3 +105,4 @@ class IngestionResult(StrictBaseModel):
         if self.status == "success" and self.errors:
             raise ValueError("successful ingestion should not include errors")
         return self
+    

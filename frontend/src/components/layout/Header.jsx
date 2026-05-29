@@ -1,4 +1,3 @@
-// src/components/layout/Header.jsx
 import { UserButton, useUser } from '@clerk/clerk-react'
 import { Link } from 'react-router-dom'
 

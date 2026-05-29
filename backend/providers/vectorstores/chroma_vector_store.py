@@ -1,5 +1,4 @@
-# backend/providers/vectorstores/chroma_vector_store.py
-from __future__ import annotations  # ← MUST be line 1, was after import
+from __future__ import annotations  
 
 import logging
 from typing import Any
@@ -11,7 +10,7 @@ from config import settings
 from providers.vectorstores.base import BaseVectorStore
 from schemas.chunk import Chunk
 
-logger = logging.getLogger(__name__)  # ← was missing, caused NameError
+logger = logging.getLogger(__name__) 
 
 
 class ChromaVectorStore(BaseVectorStore):
@@ -73,9 +72,8 @@ class ChromaVectorStore(BaseVectorStore):
                 include=["documents", "metadatas", "distances"],
             )
         except Exception:
-            # covers: n_results > collection size, empty where, any chroma error
             logger.warning("ChromaDB query failed. Returning empty results.")
-            return []  # ← always degrade, never crash caller
+            return []  
 
         return self._map_query_results(results)
 
