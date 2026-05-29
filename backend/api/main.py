@@ -1,3 +1,4 @@
+# backend/api/main.py — add documents router
 from __future__ import annotations
 
 import logging
@@ -8,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import query, upload
+from api.routes.documents import router as documents_router
 from db.database import create_tables
 
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +21,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Starting Study Assistant API")
     create_tables()
     yield
-    logger.info("Shutting down Study Assistant API")
+    logger.info("Shutting down")
 
 
 app = FastAPI(
@@ -32,8 +34,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
         "http://localhost:5173",
+        "http://localhost:3000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -42,6 +44,7 @@ app.add_middleware(
 
 app.include_router(upload.router)
 app.include_router(query.router)
+app.include_router(documents_router)
 
 
 @app.get("/health")

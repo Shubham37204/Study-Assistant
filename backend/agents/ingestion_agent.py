@@ -1,3 +1,4 @@
+# backend/agents/ingestion_agent.py — full updated
 from __future__ import annotations
 
 import logging
@@ -14,7 +15,7 @@ from core.file_detector import FileDetector
 from core.summarizer import DocumentSummarizer
 from core.text_cleaner import TextCleaner
 from db.repository import DocumentRepository
-from providers.llm.base import BaseLLMProvider          # ← NEW import
+from providers.llm.base import BaseLLMProvider
 from schemas.ingestion import (
     DocumentSummary,
     ExtractedDocument,
@@ -37,20 +38,20 @@ class IngestionAgent:
     def __init__(
         self,
         repository: DocumentRepository,
-        llm: BaseLLMProvider,                           # ← NEW param
+        llm: BaseLLMProvider,
         chunker: Any,
         embedder: Any,
         vector_store: Any,
-        keyword_store: Any,                             # ← renamed from bm25_store
+        keyword_store: Any,
     ) -> None:
         self.detector = FileDetector()
         self.cleaner = TextCleaner()
-        self.summarizer = DocumentSummarizer(llm=llm)   # ← fixed: inject llm
+        self.summarizer = DocumentSummarizer(llm=llm)
         self.repository = repository
         self.chunker = chunker
         self.embedder = embedder
         self.vector_store = vector_store
-        self.keyword_store = keyword_store              # ← renamed
+        self.keyword_store = keyword_store
 
         self._extractors: dict[FileType, BaseExtractor] = {
             FileType.PDF: PDFExtractor(),
@@ -60,7 +61,12 @@ class IngestionAgent:
             FileType.MARKDOWN: TextExtractor(),
         }
 
-    def run(self, source: str | Path, user_id: str) -> IngestionResult:
+    def run(
+        self,
+        source: str | Path,
+        user_id: str,
+        original_filename: str | None = None,  # ← original name before UUID rename
+    ) -> IngestionResult:
         document_id = str(uuid.uuid4())
         errors: list[IngestionError] = []
 
@@ -103,16 +109,19 @@ class IngestionAgent:
                 },
             )
 
-            self.keyword_store.add(                     # ← renamed
+            self.keyword_store.add(
                 document_id=document_id,
                 chunks=chunks,
             )
 
             summary = self.summarizer.summarize(cleaned_doc)
 
+            # use original_filename if provided, fall back to path stem
+            display_name = original_filename or self._get_file_name(source)
+
             result = IngestionResult(
                 document_id=document_id,
-                file_name=self._get_file_name(source),
+                file_name=display_name,
                 total_chunks=len(chunks),
                 summary=summary,
                 status="success",
@@ -139,7 +148,7 @@ class IngestionAgent:
             )
             return IngestionResult(
                 document_id=document_id,
-                file_name=self._get_file_name(source),
+                file_name=original_filename or self._get_file_name(source),
                 total_chunks=0,
                 summary=self._fallback_summary(),
                 status="failed",
@@ -152,16 +161,15 @@ class IngestionAgent:
 
     @staticmethod
     def _get_file_name(source: str | Path) -> str:
-        source_str = str(source).strip()
-        if source_str.startswith(("http://", "https://")):
-            return source_str
-        return Path(source_str).name
+        s = str(source).strip()
+        if s.startswith(("http://", "https://")):
+            return s
+        return Path(s).name
 
     @staticmethod
     def _fallback_summary() -> DocumentSummary:
         return DocumentSummary(
-            short_summary="Ingestion failed before a summary could be generated.",
+            short_summary="Ingestion failed before summary could be generated.",
             key_topics=[],
             estimated_difficulty="beginner",
         )
-    

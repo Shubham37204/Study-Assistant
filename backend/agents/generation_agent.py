@@ -1,3 +1,4 @@
+# backend/agents/generation_agent.py — full updated
 from __future__ import annotations
 
 import json
@@ -15,7 +16,6 @@ logger = logging.getLogger(__name__)
 class GenerationAgent:
     MAX_TOKENS = 1000
     NO_EVIDENCE_ANSWER = "I could not find relevant information in your notes."
-    NOT_IN_NOTES_ANSWER = "This information is not in your notes."
 
     def __init__(self, llm: BaseLLMProvider) -> None:
         self.llm = llm
@@ -24,47 +24,39 @@ class GenerationAgent:
         chunks = state.get("retrieved_chunks", [])
 
         if not chunks:
-            return {
-                "answer": self.NO_EVIDENCE_ANSWER,
-                "citations": [],
-                "confidence": 0.0,
-            }
+            return {"answer": self.NO_EVIDENCE_ANSWER, "citations": [], "confidence": 0.0}
 
         query_text = state.get("rewritten_query") or state.get("query_text", "")
         context_str = self._build_context(chunks)
+        history = state.get("conversation_history", [])
+
+        # build message list — history goes between system and current question
+        messages = [{"role": "system", "content": self._build_system_prompt()}]
+
+        # inject last few turns so LLM understands follow-up questions
+        for turn in history[-6:]:  # max 3 Q&A pairs
+            messages.append({"role": turn["role"], "content": turn["content"]})
+
+        messages.append({
+            "role": "user",
+            "content": f"Sources:\n{context_str}\n\nQuestion: {query_text}",
+        })
 
         try:
             content = self.llm.complete(
-                messages=[
-                    {
-                        "role": "system",
-                        "content": self._build_system_prompt(),
-                    },
-                    {
-                        "role": "user",
-                        "content": f"Sources:\n{context_str}\n\nQuestion: {query_text}",
-                    },
-                ],
+                messages=messages,
                 model=settings.llm_model_quality,
                 max_tokens=self.MAX_TOKENS,
                 temperature=0.2,
             )
 
             if not content:
-                return {
-                    "answer": self.NO_EVIDENCE_ANSWER,
-                    "citations": [],
-                    "confidence": 0.0,
-                }
+                return {"answer": self.NO_EVIDENCE_ANSWER, "citations": [], "confidence": 0.0}
 
             answer_text, metadata = self._extract_json_block(content)
             used_sources = self._parse_used_sources(metadata, len(chunks))
             confidence = self._parse_confidence(metadata)
-
-            citations = [
-                self._build_citation(chunks[source_index - 1])
-                for source_index in used_sources
-            ]
+            citations = [self._build_citation(chunks[i - 1]) for i in used_sources]
 
             return {
                 "answer": answer_text or content,
@@ -74,33 +66,18 @@ class GenerationAgent:
 
         except LLMProviderError:
             logger.exception("Generation LLM call failed. query=%r", query_text)
-
-            return {
-                "answer": self.NO_EVIDENCE_ANSWER,
-                "citations": [],
-                "confidence": 0.0,
-            }
+            return {"answer": self.NO_EVIDENCE_ANSWER, "citations": [], "confidence": 0.0}
 
         except Exception:
-            logger.exception("Generation failed. query=%r", query_text)
-
-            return {
-                "answer": self.NO_EVIDENCE_ANSWER,
-                "citations": [],
-                "confidence": 0.0,
-            }
+            logger.exception("Generation failed.")
+            return {"answer": self.NO_EVIDENCE_ANSWER, "citations": [], "confidence": 0.0}
 
     @staticmethod
     def _build_context(chunks: list[ChunkResult]) -> str:
-        source_blocks: list[str] = []
-
-        for index, chunk in enumerate(chunks, start=1):
-            page_label = chunk.page_number if chunk.page_number is not None else "unknown"
-            source_blocks.append(
-                f"[SOURCE {index}] (Page {page_label})\n{chunk.text}"
-            )
-
-        return "\n\n".join(source_blocks)
+        return "\n\n".join(
+            f"[SOURCE {i}] (Page {c.page_number or 'unknown'})\n{c.text}"
+            for i, c in enumerate(chunks, 1)
+        )
 
     @staticmethod
     def _build_citation(chunk: ChunkResult) -> Citation:
@@ -114,53 +91,29 @@ class GenerationAgent:
     @staticmethod
     def _extract_json_block(response: str) -> tuple[str, dict[str, Any]]:
         marker = "```json"
-
         if marker not in response:
             return response.strip(), {}
-
         answer_text, json_part = response.split(marker, maxsplit=1)
         json_text = json_part.split("```", maxsplit=1)[0].strip()
-
         try:
             return answer_text.strip(), json.loads(json_text)
-
         except json.JSONDecodeError:
-            logger.exception("Failed to parse generation metadata JSON: %r", json_text)
             return response.strip(), {}
 
     @staticmethod
-    def _parse_used_sources(
-        metadata: dict[str, Any],
-        chunk_count: int,
-    ) -> list[int]:
-        raw_sources = metadata.get("used_sources", [])
-
-        if not isinstance(raw_sources, list):
+    def _parse_used_sources(metadata: dict[str, Any], chunk_count: int) -> list[int]:
+        raw = metadata.get("used_sources", [])
+        if not isinstance(raw, list):
             return []
-
-        used_sources: list[int] = []
-
-        for source in raw_sources:
-            if not isinstance(source, int):
-                continue
-
-            if 1 <= source <= chunk_count and source not in used_sources:
-                used_sources.append(source)
-
-        return used_sources
+        return [s for s in raw if isinstance(s, int) and 1 <= s <= chunk_count]
 
     @staticmethod
     def _parse_confidence(metadata: dict[str, Any]) -> float:
-        raw_confidence = metadata.get("confidence", 0.5)
-
         try:
-            confidence = float(raw_confidence)
+            return max(0.0, min(1.0, float(metadata.get("confidence", 0.5))))
         except (TypeError, ValueError):
             return 0.5
 
-        return max(0.0, min(1.0, confidence))
-
-# backend/agents/generation_agent.py — only _build_system_prompt changes
     @staticmethod
     def _build_system_prompt() -> str:
         return """
@@ -182,3 +135,4 @@ End your response with a JSON block:
 {"confidence": 0.0, "used_sources": [1, 2]}
 ```
 """.strip()
+    

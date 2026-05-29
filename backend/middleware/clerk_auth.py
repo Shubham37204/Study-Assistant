@@ -4,24 +4,28 @@ import httpx
 from jose import jwt, JWTError
 from fastapi import HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
+from config import settings
 bearer_scheme = HTTPBearer(auto_error=False)
 
 _jwks_cache: dict | None = None
 
-async def _get_jwks() -> dict:
+async def _fetch_jwks() -> dict:
     global _jwks_cache
     if _jwks_cache:
         return _jwks_cache
 
-    clerk_secret = os.getenv("CLERK_SECRET_KEY")
+    if not settings.clerk_secret_key:
+        # JWT verification disabled — dev mode
+        return {"keys": []}
+
     async with httpx.AsyncClient() as client:
-        r = await client.get(
+        resp = await client.get(
             "https://api.clerk.com/v1/jwks",
-            headers={"Authorization": f"Bearer {clerk_secret}"},
+            headers={"Authorization": f"Bearer {settings.clerk_secret_key}"},
+            timeout=10,
         )
-        r.raise_for_status()
-        _jwks_cache = r.json()
+        resp.raise_for_status()
+        _jwks_cache = resp.json()
         return _jwks_cache
 
 

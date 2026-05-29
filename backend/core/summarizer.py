@@ -5,10 +5,18 @@ import logging
 from config import settings
 from providers.llm.base import BaseLLMProvider, LLMProviderError
 from schemas.ingestion import DocumentSummary, ExtractedDocument
-
+from groq import RateLimitError
 logger = logging.getLogger(__name__)
 
-
+def _summarize_direct(self, text: str) -> DocumentSummary:
+    try:
+        content = self.llm.complete(...)
+    except LLMProviderError as exc:
+        # surface rate limit specifically so you can see it
+        if "429" in str(exc) or "rate" in str(exc).lower():
+            raise SummarizerError("Groq rate limit hit — wait 30 seconds and retry")
+        raise SummarizerError(str(exc)) from exc
+    
 class SummarizerError(Exception):
     def __init__(self, reason: str) -> None:
         self.reason = reason
