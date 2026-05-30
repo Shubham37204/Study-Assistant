@@ -13,6 +13,7 @@ const typeColors = {
 }
 
 function DocumentItem({ doc }) {
+  console.log("DOCUMENT ITEM RENDER", doc)
   const { selectedDocIds, toggleDocSelection } = useAppStore()
   const [hovered, setHovered] = useState(false)
   const { mutate: remove, isPending: deleting } = useDeleteDocument()

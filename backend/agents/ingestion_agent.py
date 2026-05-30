@@ -121,6 +121,7 @@ class IngestionAgent:
             result = IngestionResult(
                 document_id=document_id,
                 file_name=display_name,
+                file_type=file_type.value, 
                 total_chunks=len(chunks),
                 summary=summary,
                 status="success",

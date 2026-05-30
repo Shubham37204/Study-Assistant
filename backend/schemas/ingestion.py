@@ -93,6 +93,7 @@ class DocumentSummary(StrictBaseModel):
 class IngestionResult(StrictBaseModel):
     document_id: str = Field(..., min_length=1)
     file_name: str = Field(..., min_length=1)
+    file_type: str = "text" 
     total_chunks: int = Field(..., ge=0)
     summary: DocumentSummary
     status: Literal["success", "partial", "failed"]

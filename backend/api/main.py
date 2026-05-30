@@ -14,7 +14,7 @@ from api.routes.jobs import router as jobs_router
 from config import settings
 from core.cache import ping_redis
 from db.database import create_tables
-
+from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,9 @@ def _configure_langsmith() -> None:
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     _configure_langsmith()
     create_tables()
+
+    # ensure uploads directory always exists — recreates if manually deleted
+    Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
 
     redis_ok = ping_redis()
     logger.info("Redis: %s", "connected" if redis_ok else "unavailable (cache disabled)")

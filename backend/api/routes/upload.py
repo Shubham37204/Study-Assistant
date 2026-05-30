@@ -1,4 +1,3 @@
-# backend/api/routes/upload.py — smart eager/async detection
 from __future__ import annotations
 
 import asyncio
@@ -51,10 +50,6 @@ async def upload_file(
     await file.close()
     save_path = _save_file(content, suffix)
 
-    # ── dev mode: skip Celery entirely ────────────────────────────────────
-    # cache+memory:// doesn't persist across uvicorn processes.
-    # When eager=True, run sync and return result directly.
-    # Frontend handles this with the async=False path — no polling needed.
     if settings.celery_always_eager:
         logger.info("Eager mode: running ingestion synchronously")
         loop = asyncio.get_running_loop()
@@ -80,8 +75,6 @@ async def upload_file(
             "result":    result_dict,
         }
 
-   
-   
     try:
         task = ingest_document.delay(str(save_path), effective_user_id, original_filename)
         logger.info("Task queued: %s", task.id)
@@ -113,7 +106,11 @@ async def upload_file(
 
 
 def _sync_ingest(source: str, user_id: str, original_filename: str) -> dict:
-    import json
+    """
+    Runs ingestion synchronously.
+    Returns UploadResponse-shaped dict — same shape as the async Celery path.
+    This ensures the frontend always receives the same data structure.
+    """
     db = SessionLocal()
     try:
         agent = build_ingestion_agent(db_session=db)
@@ -122,7 +119,18 @@ def _sync_ingest(source: str, user_id: str, original_filename: str) -> dict:
             user_id=user_id,
             original_filename=original_filename,
         )
-        return json.loads(result.model_dump_json())
+        # explicitly map to UploadResponse shape
+        # NOT result.model_dump_json() which gives IngestionResult shape
+        return {
+            "document_id": result.document_id,
+            "file_name":   result.file_name,
+            "file_type":   result.file_type,
+            "total_chunks": result.total_chunks,
+            "summary":     result.summary.short_summary,   # ← flatten to string
+            "key_topics":  result.summary.key_topics,       # ← top-level list
+            "status":      result.status,
+            "errors":      [e.message for e in result.errors],
+        }
     finally:
         db.close()
         Path(source).unlink(missing_ok=True)

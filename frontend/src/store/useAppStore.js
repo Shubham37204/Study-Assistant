@@ -89,7 +89,6 @@ const useAppStore = create(
       name: 'study-assistant',
 
       partialize: (state) => ({
-        documents: state.documents,
         selectedDocIds: state.selectedDocIds,
       }),
     }

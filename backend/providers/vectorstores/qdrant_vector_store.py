@@ -96,7 +96,10 @@ class QdrantVectorStore(BaseVectorStore):
                 with_payload=True,
             )
         except Exception:
-            logger.warning("Qdrant query failed, returning empty")
+            logger.warning(
+                "Qdrant query failed. filters=%s",
+                filters,
+            )
             return []
 
         return [

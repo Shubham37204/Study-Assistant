@@ -1,44 +1,38 @@
-# backend/test_system.py
+# backend/test_system.py — updated with query test
 """
-Run from backend/:  python test_system.py
-Tests every component independently. Fix failures before starting uvicorn.
+Run from backend/: python test_system.py
 """
 from __future__ import annotations
-
 import sys
 import tempfile
 from pathlib import Path
 
 
-def _ok(label: str, detail: str = "") -> None:
+def _ok(label, detail=""):
     print(f"  ✓  {label}" + (f" — {detail}" if detail else ""))
 
 
-def _fail(label: str, err: Exception) -> None:
+def _fail(label, err):
     print(f"  ✗  {label}")
     print(f"     {type(err).__name__}: {err}")
 
 
-# ── 1 ─────────────────────────────────────────────────────────────────────
-def test_config() -> bool:
-    print("\n[1] Config & Environment")
+def test_config():
+    print("\n[1] Config")
     try:
         from config import settings
-        assert settings.groq_api_key, "GROQ_API_KEY missing"
+        assert settings.groq_api_key
         _ok("Settings loaded")
-        _ok("GROQ_API_KEY present")
-        print(f"       database_url = {settings.database_url[:40]}...")
-        print(f"       qdrant_url   = {settings.qdrant_url}")
-        print(f"       celery_eager = {settings.celery_always_eager}")
+        _ok(f"database_url = {settings.database_url[:40]}...")
+        _ok(f"qdrant_url = {settings.qdrant_url}")
+        _ok(f"celery_eager = {settings.celery_always_eager}")
         return True
     except Exception as e:
-        _fail("Config load", e)
-        return False
+        _fail("Config", e); return False
 
 
-# ── 2 ─────────────────────────────────────────────────────────────────────
-def test_database() -> bool:
-    print("\n[2] Database (PostgreSQL / SQLite)")
+def test_database():
+    print("\n[2] Database")
     try:
         from sqlalchemy import text
         from db.database import SessionLocal, create_tables
@@ -46,86 +40,76 @@ def test_database() -> bool:
         db = SessionLocal()
         db.execute(text("SELECT 1"))
         db.close()
-        _ok("Database connected and tables created")
+        _ok("Connected and tables created")
         return True
     except Exception as e:
-        _fail("Database", e)
-        return False
+        _fail("Database", e); return False
 
 
-# ── 3 ─────────────────────────────────────────────────────────────────────
-def test_groq() -> bool:
-    print("\n[3] Groq LLM API")
+def test_groq():
+    print("\n[3] Groq API")
     try:
         from providers.llm.groq_provider import GroqProvider
         llm = GroqProvider()
-        response = llm.complete(
-            messages=[{"role": "user", "content": "Reply with the single word: OK"}],
+        r = llm.complete(
+            messages=[{"role": "user", "content": "Say OK only."}],
             model="llama-3.1-8b-instant",
-            max_tokens=10,
+            max_tokens=5,
         )
-        assert response.strip(), "Empty response from Groq"
-        _ok("Groq API", f"response='{response.strip()}'")
+        assert r.strip()
+        _ok("Groq", f"response='{r.strip()}'")
         return True
     except Exception as e:
-        _fail("Groq API", e)
-        return False
+        _fail("Groq API", e); return False
 
 
-# ── 4 ─────────────────────────────────────────────────────────────────────
-def test_embedder() -> bool:
-    print("\n[4] Sentence Transformers (BGE-small)")
+def test_embedder():
+    print("\n[4] Embedder")
     try:
         from providers.embeddings.sentence_transformer_embedder import SentenceTransformerEmbedder
-        embedder = SentenceTransformerEmbedder()
-        vecs = embedder.embed_documents(["test sentence"])
-        assert len(vecs) == 1
-        assert len(vecs[0]) == 384
-        _ok("Embedder", f"384-dim vector ✓")
+        e = SentenceTransformerEmbedder()
+        v = e.embed_documents(["hello world"])
+        assert len(v[0]) == 384
+        _ok("Embedder", "384-dim ✓")
         return True
     except Exception as e:
-        _fail("Embedder", e)
-        return False
+        _fail("Embedder", e); return False
 
 
-# ── 5 ─────────────────────────────────────────────────────────────────────
-def test_qdrant() -> bool:
-    print("\n[5] Qdrant Vector Store")
+def test_qdrant():
+    print("\n[5] Qdrant")
     try:
         from providers.vectorstores.qdrant_vector_store import QdrantVectorStore
-        store = QdrantVectorStore()
-        _ok("Qdrant connected", f"collection='{store.collection}'")
+        s = QdrantVectorStore()
+        _ok("Qdrant", f"collection='{s.collection}'")
         return True
     except Exception as e:
         _fail("Qdrant", e)
-        print("     → Start Qdrant: run qdrant.exe  OR  use Qdrant Cloud (cloud.qdrant.io)")
+        print("     → Run qdrant.exe  OR  use cloud.qdrant.io")
         return False
 
 
-# ── 6 ─────────────────────────────────────────────────────────────────────
-def test_bm25() -> bool:
-    print("\n[6] BM25 Keyword Store")
+def test_bm25():
+    print("\n[6] BM25")
     try:
         from providers.keyword.bm25_store import BM25KeywordStore
-        store = BM25KeywordStore()
-        _ok("BM25 store loaded")
+        BM25KeywordStore()
+        _ok("BM25 loaded")
         return True
     except Exception as e:
-        _fail("BM25", e)
-        return False
+        _fail("BM25", e); return False
 
 
-# ── 7 ─────────────────────────────────────────────────────────────────────
-def test_full_ingestion() -> bool:
-    print("\n[7] Full Ingestion Pipeline (text file)")
+def test_ingestion():
+    print("\n[7] Full Ingestion")
     try:
         with tempfile.NamedTemporaryFile(
             suffix=".txt", mode="w", delete=False, encoding="utf-8"
         ) as f:
             f.write(
-                "Artificial intelligence is transforming software engineering. "
-                "Machine learning models process large datasets to find patterns. "
-                "Retrieval-augmented generation combines search with language models."
+                "Python is a high-level programming language. "
+                "It is widely used in data science and machine learning. "
+                "FastAPI is a modern web framework for building APIs with Python."
             )
             tmp = f.name
 
@@ -138,23 +122,22 @@ def test_full_ingestion() -> bool:
             result = agent.run(
                 source=tmp,
                 user_id="system_test_user",
-                original_filename="system_test.txt",
+                original_filename="test_document.txt",
             )
         finally:
             db.close()
             Path(tmp).unlink(missing_ok=True)
 
-        assert result.status == "success", f"status={result.status}, errors={result.errors}"
-        _ok("Ingestion", f"{result.total_chunks} chunks, summary present={bool(result.summary)}")
+        assert result.status == "success", f"status={result.status}"
+        assert result.total_chunks > 0
+        _ok("Ingestion", f"{result.total_chunks} chunks, file_type={result.file_type}")
         return True
     except Exception as e:
-        _fail("Ingestion pipeline", e)
-        return False
+        _fail("Ingestion", e); return False
 
 
-# ── 8 ─────────────────────────────────────────────────────────────────────
-def test_query_pipeline() -> bool:
-    print("\n[8] Query Pipeline (RAG graph)")
+def test_query():
+    print("\n[8] Query Pipeline")
     try:
         from api.dependencies import (
             get_embedder, get_keyword_store, get_llm,
@@ -171,18 +154,33 @@ def test_query_pipeline() -> bool:
         )
         result = graph.query(
             user_id="system_test_user",
-            query_text="What is machine learning?",
-            document_ids=[],
+            query_text="What is Python used for?",
         )
         assert "answer" in result
-        _ok("Query pipeline", f"answer length={len(result['answer'])} chars")
+        _ok("Query", f"answer={len(result['answer'])} chars, intent={result.get('intent')}")
         return True
     except Exception as e:
-        _fail("Query pipeline", e)
-        return False
+        _fail("Query pipeline", e); return False
 
 
-# ─────────────────────────────────────────────────────────────────────────
+def test_get_documents():
+    print("\n[9] Document List Endpoint")
+    try:
+        from db.database import SessionLocal
+        from db.repository import DocumentRepository
+
+        db = SessionLocal()
+        try:
+            repo = DocumentRepository(db)
+            docs = repo.get_by_user_id("system_test_user")
+            _ok("Document fetch", f"{len(docs)} docs for test user")
+        finally:
+            db.close()
+        return True
+    except Exception as e:
+        _fail("Document list", e); return False
+
+
 if __name__ == "__main__":
     print("=" * 55)
     print("  Study Assistant — System Diagnostics")
@@ -195,8 +193,9 @@ if __name__ == "__main__":
         test_embedder,
         test_qdrant,
         test_bm25,
-        test_full_ingestion,
-        test_query_pipeline,
+        test_ingestion,
+        test_query,
+        test_get_documents,
     ]
 
     results = []
@@ -204,19 +203,18 @@ if __name__ == "__main__":
         try:
             results.append(t())
         except Exception as e:
-            print(f"  ✗  Unexpected crash in {t.__name__}: {e}")
+            print(f"  ✗  Crash in {t.__name__}: {e}")
             results.append(False)
 
     passed = sum(results)
     failed = len(results) - passed
 
     print("\n" + "=" * 55)
-    print(f"  {passed}/{len(results)} passed   {failed} failed")
+    print(f"  {passed}/{len(results)} passed,  {failed} failed")
     if failed == 0:
-        print("  All systems operational. Safe to start the server.")
+        print("  All systems operational.")
     else:
-        print("  Fix failing components before starting uvicorn.")
+        print("  Fix failures before starting the server.")
     print("=" * 55)
-
     sys.exit(0 if failed == 0 else 1)
     

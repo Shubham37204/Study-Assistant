@@ -3,7 +3,7 @@ import DocumentItem from './DocumentItem'
 
 function DocumentList() {
   const documents = useAppStore((state) => state.documents)
-
+ console.log('DOCUMENT LIST', documents)
   if (documents.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-1 py-10">

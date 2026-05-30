@@ -62,3 +62,8 @@ class DocumentRepository:
         self.db.delete(document)
         self.db.commit()
         return True
+    
+
+    def get_by_user_id(self, user_id: str) -> list:
+        """Calls existing list_by_user — avoids duplicating query logic."""
+        return self.list_by_user(user_id)

@@ -11,6 +11,7 @@ IngestionStatus = Literal["success", "partial", "failed"]
 class UploadResponse(StrictBaseModel):
     document_id: str = Field(..., min_length=1)
     file_name: str = Field(..., min_length=1)
+    file_type: str = "text" 
     total_chunks: int = Field(..., ge=0)
     summary: str
     key_topics: list[str] = Field(default_factory=list)
