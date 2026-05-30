@@ -107,3 +107,17 @@ temp/
 chroma_db/
 bm25_index/
 study_assistant.db
+
+# backend/.dockerignore
+__pycache__
+*.pyc
+*.pyo
+.env
+venv/
+.git
+chroma_db/
+bm25_index/
+uploads/
+study_assistant.db
+*.db
+*.sqlite3

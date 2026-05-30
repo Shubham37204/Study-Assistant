@@ -6,6 +6,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.dependencies import get_rag_graph
+from core.cache import get_cached_query, set_cached_query
 from graph.rag_graph import RAGGraph
 from middleware.clerk_auth import get_verified_user_id
 from schemas.api import CitationResponse, ErrorResponse, QueryRequest, QueryResponse
@@ -22,6 +23,15 @@ async def query_documents(
 ) -> QueryResponse:
 
     effective_user_id = verified_id or body.user_id
+    cached = get_cached_query(body.query_text, body.document_ids)
+    if cached:
+        citations = [CitationResponse(**c) for c in cached.get("citations", [])]
+        return QueryResponse(
+            answer=cached.get("answer", ""),
+            citations=citations,
+            intent=cached.get("intent", "factual"),
+            search_type_used=body.search_type,
+        )
 
     try:
         loop = asyncio.get_running_loop()
@@ -38,6 +48,8 @@ async def query_documents(
             ),
         )
 
+        set_cached_query(body.query_text, body.document_ids, response)
+
         citations = [CitationResponse(**c) for c in response.get("citations", [])]
 
         return QueryResponse(
@@ -50,12 +62,9 @@ async def query_documents(
     except HTTPException:
         raise
     except Exception:
-        logger.exception("Query failed")
+        logger.exception("Query pipeline failed")
         raise HTTPException(
             status_code=500,
-            detail=ErrorResponse(
-                error="query_failed",
-                detail="Failed to process query",
-            ).model_dump(),
+            detail=ErrorResponse(error="query_failed", detail="Pipeline error").model_dump(),
         )
     

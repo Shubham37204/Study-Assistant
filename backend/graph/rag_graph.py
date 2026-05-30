@@ -17,7 +17,6 @@ from schemas.graph import GraphState
 
 logger = logging.getLogger(__name__)
 
-
 class RAGGraph:
     def __init__(
         self,

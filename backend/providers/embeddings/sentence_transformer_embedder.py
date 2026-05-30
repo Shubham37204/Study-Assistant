@@ -5,7 +5,6 @@ from sentence_transformers import SentenceTransformer
 from config import settings
 from providers.embeddings.base import BaseEmbedder
 
-
 class SentenceTransformerEmbedder(BaseEmbedder):
     QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
 
@@ -43,3 +42,4 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         )
 
         return cast(list[float], embedding.tolist())
+    

@@ -3,10 +3,8 @@ from typing import Literal
 from pydantic import Field, model_validator
 from schemas.ingestion import StrictBaseModel  
 
-
 SearchType = Literal["hybrid", "vector_only", "bm25_only"]
 RetrievalSource = Literal["vector", "bm25"]
-
 
 class SearchQuery(StrictBaseModel):
     query_text: str = Field(..., min_length=1)

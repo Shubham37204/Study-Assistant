@@ -1,3 +1,4 @@
+# backend/api/routes/upload.py — smart eager/async detection
 from __future__ import annotations
 
 import asyncio
@@ -6,27 +7,27 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from kombu.exceptions import OperationalError
 
-from agents.ingestion_agent import IngestionAgent
-from api.dependencies import get_ingestion_agent
+from api.dependencies import build_ingestion_agent
 from config import settings
+from db.database import SessionLocal
 from middleware.clerk_auth import get_verified_user_id
-from schemas.api import ErrorResponse, UploadResponse
+from schemas.api import ErrorResponse
+from tasks.ingestion_task import ingest_document
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("", response_model=UploadResponse)
+@router.post("")
 async def upload_file(
     file: UploadFile = File(...),
     user_id: str = Query(..., min_length=1),
     verified_id: str | None = Depends(get_verified_user_id),
-    ingestion_agent: IngestionAgent = Depends(get_ingestion_agent),
-) -> UploadResponse:
+) -> dict:
 
     effective_user_id = verified_id or user_id
-
     original_filename = file.filename or "unknown"
     suffix = _validate_extension(original_filename)
 
@@ -47,36 +48,84 @@ async def upload_file(
             detail=ErrorResponse(error="empty_file", detail="File has no content").model_dump(),
         )
 
+    await file.close()
     save_path = _save_file(content, suffix)
 
-    try:
+    # ── dev mode: skip Celery entirely ────────────────────────────────────
+    # cache+memory:// doesn't persist across uvicorn processes.
+    # When eager=True, run sync and return result directly.
+    # Frontend handles this with the async=False path — no polling needed.
+    if settings.celery_always_eager:
+        logger.info("Eager mode: running ingestion synchronously")
         loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(
-            None,
-            lambda: ingestion_agent.run(
-                source=save_path,
-                user_id=effective_user_id,
-                original_filename=original_filename,  
-            ),
+        try:
+            result_dict = await loop.run_in_executor(
+                None,
+                lambda: _sync_ingest(str(save_path), effective_user_id, original_filename),
+            )
+        finally:
+            save_path.unlink(missing_ok=True)
+
+        if result_dict.get("status") == "failed":
+            raise HTTPException(
+                status_code=422,
+                detail=result_dict,
+            )
+
+        return {
+            "job_id":    None,
+            "status":    "success",
+            "file_name": original_filename,
+            "async":     False,
+            "result":    result_dict,
+        }
+
+   
+   
+    try:
+        task = ingest_document.delay(str(save_path), effective_user_id, original_filename)
+        logger.info("Task queued: %s", task.id)
+        return {
+            "job_id":    task.id,
+            "status":    "pending",
+            "file_name": original_filename,
+            "async":     True,
+        }
+
+    except (OperationalError, ConnectionError, Exception) as exc:
+        logger.warning("Celery unavailable (%s) — running synchronously", exc.__class__.__name__)
+        loop = asyncio.get_running_loop()
+        try:
+            result_dict = await loop.run_in_executor(
+                None,
+                lambda: _sync_ingest(str(save_path), effective_user_id, original_filename),
+            )
+        finally:
+            save_path.unlink(missing_ok=True)
+
+        return {
+            "job_id":    None,
+            "status":    "success",
+            "file_name": original_filename,
+            "async":     False,
+            "result":    result_dict,
+        }
+
+
+def _sync_ingest(source: str, user_id: str, original_filename: str) -> dict:
+    import json
+    db = SessionLocal()
+    try:
+        agent = build_ingestion_agent(db_session=db)
+        result = agent.run(
+            source=source,
+            user_id=user_id,
+            original_filename=original_filename,
         )
+        return json.loads(result.model_dump_json())
     finally:
-        save_path.unlink(missing_ok=True)
-        await file.close()
-
-    response = UploadResponse(
-        document_id=result.document_id,
-        file_name=result.file_name,
-        total_chunks=result.total_chunks,
-        summary=result.summary.short_summary,
-        key_topics=result.summary.key_topics,
-        status=result.status,
-        errors=[e.message for e in result.errors],
-    )
-
-    if result.status == "failed":
-        raise HTTPException(status_code=422, detail=response.model_dump())
-
-    return response
+        db.close()
+        Path(source).unlink(missing_ok=True)
 
 
 def _validate_extension(filename: str) -> str:

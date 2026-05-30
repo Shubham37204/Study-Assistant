@@ -7,11 +7,9 @@ export async function uploadDocument(file, userId) {
     `/upload?user_id=${encodeURIComponent(userId)}`,
     formData
   )
-  return response.data
+  return response.data  
 }
 
 export async function deleteDocument(documentId, userId) {
-  await apiClient.delete(
-    `/documents/${documentId}?user_id=${encodeURIComponent(userId)}`
-  )
+  await apiClient.delete(`/documents/${documentId}?user_id=${encodeURIComponent(userId)}`)
 }

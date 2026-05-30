@@ -1,0 +1,96 @@
+version: "3.9"
+
+services:
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: study
+      POSTGRES_PASSWORD: study
+      POSTGRES_DB: study_assistant
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U study"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:6333/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://study:study@postgres:5432/study_assistant
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+    volumes:
+      - uploads:/app/uploads
+      - bm25_data:/app/bm25_index
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A celery_app worker --loglevel=info --concurrency=2
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://study:study@postgres:5432/study_assistant
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+    volumes:
+      - uploads:/app/uploads     # shared with api — worker reads uploaded files
+      - bm25_data:/app/bm25_index
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+
+volumes:
+  redis_data:
+  postgres_data:
+  qdrant_data:
+  uploads:
+  bm25_data:

@@ -6,6 +6,8 @@ from config import settings
 from providers.llm.base import BaseLLMProvider, LLMProviderError
 from schemas.ingestion import DocumentSummary, ExtractedDocument
 from groq import RateLimitError
+import json
+
 logger = logging.getLogger(__name__)
 
 def _summarize_direct(self, text: str) -> DocumentSummary:
@@ -80,7 +82,12 @@ class DocumentSummarizer:
             raise SummarizerError("LLM returned an empty summary response")
 
         try:
-            return DocumentSummary.model_validate_json(content)
+            data = json.loads(content)
+
+            if "short_summary" in data:
+                data["short_summary"] = data["short_summary"][:200]
+
+            return DocumentSummary.model_validate(data)
 
         except Exception as exc:
             raise SummarizerError(f"Failed to parse summary JSON: {exc}") from exc
