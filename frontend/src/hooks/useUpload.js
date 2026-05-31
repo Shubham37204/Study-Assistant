@@ -1,13 +1,12 @@
-// src/hooks/useUpload.js — simplified, handles sync response correctly
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@clerk/clerk-react";
 import { uploadDocument } from "../api/documents";
 import useAppStore from "../store/useAppStore";
+import apiClient from '../api/client'
 
 const POLL_INTERVAL = 2000;
-const MAX_POLLS = 90; // 3 minutes
-
+const MAX_POLLS = 90; 
 export function useUpload() {
   const { userId } = useAuth();
   const addDocument = useAppStore((state) => state.addDocument);
@@ -25,15 +24,11 @@ export function useUpload() {
         toast.dismiss(toastId);
         throw err;
       }
-
-      // ── sync path (eager mode / dev) ──────────────────────────────────
-      // result already available — no polling needed
       if (!response.async && response.status === "success" && response.result) {
         toast.dismiss(toastId);
         return { ...response.result, _toastId: toastId };
       }
 
-      // ── async path (production with Redis + Celery) ───────────────────
       if (response.job_id) {
         try {
           const result = await pollJobStatus(response.job_id, toastId);
@@ -49,12 +44,10 @@ export function useUpload() {
     },
 
     onSuccess: (data) => {
-      console.log("UPLOAD SUCCESS", data);
       toast.dismiss(data._toastId);
       toast.success(`"${data.file_name}" ready — ${data.total_chunks} chunks`, {
         duration: 4000,
       });
-      console.log("UPLOAD SUCCESS", data);
       addDocument(data);
       console.log("STORE AFTER ADD", useAppStore.getState().documents);
     },
@@ -65,20 +58,15 @@ export function useUpload() {
   });
 }
 
-async function pollJobStatus(jobId, toastId, attempts = 0) {
-  if (attempts > MAX_POLLS) {
-    throw new Error("Upload timed out — backend may be slow");
-  }
+async function pollJobStatus(jobId, attempts = 0) {
+  if (attempts > MAX_POLLS) throw new Error('Upload timed out')
 
-  const res = await fetch(`/jobs/${jobId}`);
-  if (!res.ok) throw new Error(`Job poll failed: ${res.status}`);
+  const res  = await apiClient.get(`/jobs/${jobId}`)
+  const data = res.data
 
-  const data = await res.json();
+  if (data.status === 'success') return data.result
+  if (data.status === 'failed')  throw new Error(data.error || 'Ingestion failed')
 
-  if (data.status === "success") return data.result;
-  if (data.status === "failed")
-    throw new Error(data.error || "Ingestion failed");
-
-  await new Promise((r) => setTimeout(r, POLL_INTERVAL));
-  return pollJobStatus(jobId, toastId, attempts + 1);
+  await new Promise((r) => setTimeout(r, POLL_INTERVAL))
+  return pollJobStatus(jobId, attempts + 1)
 }

@@ -1,23 +1,25 @@
 from __future__ import annotations
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+from config import settings
 from db.models import Base
 
-DATABASE_URL = "sqlite:///./study_assistant.db"
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},  
-)
+def _build_engine():
+    url = settings.database_url
+    connect_args = {"check_same_thread": False} if url.startswith("sqlite") else {}
+    return create_engine(url, connect_args=connect_args)
 
+
+engine = _build_engine()
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
 def create_tables() -> None:
-    """Call once on startup — creates all tables if not exist."""
     Base.metadata.create_all(bind=engine)
 
 
 def get_session() -> Session:
-    """Returns a raw session. Caller must close it."""
     return SessionLocal()

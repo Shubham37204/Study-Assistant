@@ -52,3 +52,4 @@ class PlanningAgent:
         )
 
         return {"search_query": search_query}
+    

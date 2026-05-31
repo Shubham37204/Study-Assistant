@@ -4,7 +4,6 @@ from pathlib import Path
 from urllib.parse import urlparse
 from schemas.ingestion import FileType
 
-
 class FileDetector:
     MIME_TYPE_MAPPING: dict[str, FileType] = {
         "application/pdf": FileType.PDF,
@@ -33,7 +32,6 @@ class FileDetector:
         if parsed.scheme in {"http", "https"}:
             return FileType.URL
 
-        # explicit extension check before mimetypes (cross-platform safety)
         suffix = Path(source_str).suffix.lower()
         if suffix in cls.EXTENSION_FALLBACK:
             return cls.EXTENSION_FALLBACK[suffix]

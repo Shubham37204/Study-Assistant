@@ -29,3 +29,4 @@ class BaseVectorStore(ABC):
     def delete_document(self, document_id: str, user_id: str) -> None:
         """Delete vectors only when the document belongs to the given user."""
         raise NotImplementedError
+    

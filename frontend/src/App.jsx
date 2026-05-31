@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import Spinner from './components/ui/Spinner'
 
-const SystemTest = lazy(() => import('./tests/SystemTest'))
 const AuthPage      = lazy(() => import('./pages/AuthPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 
@@ -26,7 +25,6 @@ function App() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path="/test" element={<SystemTest />} />
         <Route path="/" element={<AuthPage />} />
         <Route
           path="/dashboard"

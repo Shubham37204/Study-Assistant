@@ -1,5 +1,5 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 const useAppStore = create(
   persist(
@@ -10,29 +10,28 @@ const useAppStore = create(
       addDocument: (doc) =>
         set((state) => {
           const exists = state.documents.some(
-            (d) => d.document_id === doc.document_id
-          )
+            (d) => d.document_id === doc.document_id,
+          );
 
-          if (exists) return state
+          if (exists) return state;
 
           return {
             documents: [doc, ...state.documents],
-          }
+          };
         }),
 
-      setDocuments: (docs) =>
-        set({
+      setDocuments: (docs) => {
+        const validIds = new Set(docs.map((d) => d.document_id));
+        set((state) => ({
           documents: docs,
-        }),
+          selectedDocIds: state.selectedDocIds.filter((id) => validIds.has(id)),
+        }));
+      },
 
       removeDocument: (docId) =>
         set((state) => ({
-          documents: state.documents.filter(
-            (d) => d.document_id !== docId
-          ),
-          selectedDocIds: state.selectedDocIds.filter(
-            (id) => id !== docId
-          ),
+          documents: state.documents.filter((d) => d.document_id !== docId),
+          selectedDocIds: state.selectedDocIds.filter((id) => id !== docId),
         })),
 
       clearDocuments: () =>
@@ -43,16 +42,13 @@ const useAppStore = create(
 
       toggleDocSelection: (docId) =>
         set((state) => {
-          const alreadySelected =
-            state.selectedDocIds.includes(docId)
+          const alreadySelected = state.selectedDocIds.includes(docId);
 
           return {
             selectedDocIds: alreadySelected
-              ? state.selectedDocIds.filter(
-                  (id) => id !== docId
-                )
+              ? state.selectedDocIds.filter((id) => id !== docId)
               : [...state.selectedDocIds, docId],
-          }
+          };
         }),
 
       clearSelectedDocs: () =>
@@ -78,21 +74,21 @@ const useAppStore = create(
         }),
 
       getSelectedDocuments: () => {
-        const { documents, selectedDocIds } = get()
+        const { documents, selectedDocIds } = get();
 
         return documents.filter((doc) =>
-          selectedDocIds.includes(doc.document_id)
-        )
+          selectedDocIds.includes(doc.document_id),
+        );
       },
     }),
     {
-      name: 'study-assistant',
+      name: "study-assistant",
 
       partialize: (state) => ({
         selectedDocIds: state.selectedDocIds,
       }),
-    }
-  )
-)
+    },
+  ),
+);
 
-export default useAppStore
+export default useAppStore;

@@ -1,4 +1,3 @@
-// src/components/chat/ChatWindow.jsx — updated EmptyState
 import { useEffect, useRef } from 'react'
 import useAppStore from '@/store/useAppStore'
 import { useChatQuery } from '@/hooks/useQuery'
@@ -56,7 +55,6 @@ function EmptyState({ documents, selectedIds, onSuggest }) {
   return (
     <div className="flex h-full flex-col items-start justify-center gap-6 max-w-2xl mx-auto w-full">
 
-      {/* show selected document info — replaces confusion about "where's my PDF" */}
       {selectedDocs.length > 0 && (
         <div className="w-full space-y-3">
           {selectedDocs.map((doc) => (

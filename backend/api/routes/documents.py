@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import json as _json
 import asyncio
+import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -18,24 +18,21 @@ logger = logging.getLogger(__name__)
 
 
 def _safe_list(raw) -> list:
-    """Convert DB field to list — handles None, list, JSON string."""
     if not raw:
         return []
     if isinstance(raw, list):
         return raw
     if isinstance(raw, str):
         try:
-            parsed = _json.loads(raw)
+            parsed = json.loads(raw)
             return parsed if isinstance(parsed, list) else []
-        except (_json.JSONDecodeError, ValueError):
+        except (json.JSONDecodeError, ValueError):
             return []
     return []
 
 
 def _safe_str(raw, default: str = "") -> str:
-    if raw is None:
-        return default
-    return str(raw)
+    return str(raw) if raw is not None else default
 
 
 @router.get("")
@@ -57,17 +54,16 @@ async def get_documents(
     for d in docs:
         try:
             result.append({
-                "document_id":  _safe_str(d.document_id),
+                "document_id":  _safe_str(d.id),              
                 "file_name":    _safe_str(d.file_name, "unknown"),
-                "file_type":    _safe_str(getattr(d, "file_type", "text"), "text") or "text",
-                "total_chunks": getattr(d, "total_chunks", 0) or 0,
-                "summary":      _safe_str(getattr(d, "summary", "")),
-                "key_topics":   _safe_list(getattr(d, "key_topics", None)),
-                "status":       _safe_str(getattr(d, "status", "success"), "success"),
+                "file_type":    _safe_str(d.file_type, "text") or "text",
+                "total_chunks": d.total_chunks or 0,
+                "summary":      _safe_str(d.short_summary),   
+                "key_topics":   _safe_list(d.key_topics),     
+                "status":       _safe_str(d.status, "success"),
             })
         except Exception:
-            logger.warning("Skipped malformed document record: %s", getattr(d, "document_id", "?"))
-            continue
+            logger.warning("Skipped malformed document: %s", getattr(d, "id", "?")) 
 
     return result
 
@@ -104,10 +100,10 @@ def _delete_from_all(document_id, user_id, vector_store, keyword_store, reposito
     try:
         vector_store.delete_document(document_id, user_id)
     except Exception:
-        logger.warning("Vector store delete failed for %s", document_id)
+        logger.warning("Vector store delete failed: %s", document_id)
     try:
         keyword_store.delete_document(document_id, user_id)
     except Exception:
-        logger.warning("Keyword store delete failed for %s", document_id)
+        logger.warning("Keyword store delete failed: %s", document_id)
     repository.delete(document_id)
     

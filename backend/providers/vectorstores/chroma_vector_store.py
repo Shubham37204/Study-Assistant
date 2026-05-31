@@ -132,3 +132,4 @@ class ChromaVectorStore(BaseVectorStore):
             })
 
         return mapped
+    

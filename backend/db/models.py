@@ -1,7 +1,10 @@
 from __future__ import annotations
-from datetime import datetime, timezone  
+
+from datetime import datetime, timezone
+
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
 
 class Base(DeclarativeBase):
     pass
@@ -18,10 +21,10 @@ class Document(Base):
     total_pages: Mapped[int] = mapped_column(Integer, nullable=False)
     total_chunks: Mapped[int] = mapped_column(Integer, nullable=False)
     short_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
-    key_topics: Mapped[str | None] = mapped_column(String, nullable=True)
+    key_topics: Mapped[str | None] = mapped_column(Text, nullable=True)  
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),                       
-        default=lambda: datetime.now(timezone.utc),   
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
     status: Mapped[str] = mapped_column(String, nullable=False)
@@ -46,3 +49,4 @@ class Page(Base):
     is_scanned: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     document: Mapped["Document"] = relationship(back_populates="pages")
+    

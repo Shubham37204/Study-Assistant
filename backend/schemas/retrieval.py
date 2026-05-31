@@ -42,3 +42,4 @@ class RetrievalResult(StrictBaseModel):
     search_type_used: SearchType
     total_candidates_before_rerank: int = Field(..., ge=0)
     reranking_applied: bool
+    

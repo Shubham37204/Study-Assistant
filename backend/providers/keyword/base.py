@@ -26,3 +26,4 @@ class BaseKeywordStore(ABC):
     def delete_document(self, document_id: str, user_id: str) -> None:
         """Delete keyword index entries only when owned by the given user."""
         raise NotImplementedError
+    

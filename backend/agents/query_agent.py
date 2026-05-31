@@ -25,6 +25,9 @@ class QueryUnderstandingAgent:
 
         if not query_text.strip():
             return self._default_response(query_text)
+        
+        if state.get("document_ids"):
+            result["needs_retrieval"] = True
 
         try:
             content = self.llm.complete(
@@ -101,3 +104,4 @@ Rules:
 - needs_retrieval must be false only for greetings, chitchat, or questions that need no document context.
 - For study questions, document questions, summaries, explanations, comparisons, and factual questions about uploaded material, needs_retrieval must be true.
 """.strip()
+    

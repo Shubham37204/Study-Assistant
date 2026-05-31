@@ -1,4 +1,3 @@
-// src/api/client.js — increase upload timeout to 3 minutes
 import axios from 'axios'
 
 const baseURL = import.meta.env.DEV
@@ -7,7 +6,7 @@ const baseURL = import.meta.env.DEV
 
 const apiClient = axios.create({
   baseURL,
-  timeout: 180000, // 3 minutes — PDF ingestion can take time on first run
+  timeout: 180000, 
 })
 
 apiClient.interceptors.request.use(async (config) => {

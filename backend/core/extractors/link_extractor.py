@@ -63,3 +63,4 @@ class LinkExtractor(BaseExtractor):
 
         normalized = title.strip()
         return normalized or None
+    

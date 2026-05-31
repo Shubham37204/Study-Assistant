@@ -36,3 +36,4 @@ class TextExtractor(BaseExtractor):
 
         except Exception as exc:
             raise ExtractorError(source_path, str(exc)) from exc
+        

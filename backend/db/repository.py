@@ -1,9 +1,14 @@
 from __future__ import annotations
+
+import json
 from uuid import uuid4
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+
 from db.models import Document, Page
-from schemas.ingestion import ExtractedDocument, IngestionResult 
+from schemas.ingestion import ExtractedDocument, IngestionResult
+
 
 class DocumentRepository:
     def __init__(self, db: Session) -> None:
@@ -24,7 +29,7 @@ class DocumentRepository:
             total_pages=extracted_doc.total_pages,
             total_chunks=result.total_chunks,
             short_summary=result.summary.short_summary,
-            key_topics=",".join(result.summary.key_topics),
+            key_topics=json.dumps(result.summary.key_topics),  
             status=result.status,
         )
 
@@ -62,8 +67,7 @@ class DocumentRepository:
         self.db.delete(document)
         self.db.commit()
         return True
-    
 
     def get_by_user_id(self, user_id: str) -> list:
-        """Calls existing list_by_user — avoids duplicating query logic."""
         return self.list_by_user(user_id)
+    
