@@ -52,6 +52,7 @@ async def get_verified_user_id(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
 ) -> str | None:
     if not credentials:
+        # Production fix: require credentials instead of returning None for user-scoped routes.
         return None
 
     token = credentials.credentials
@@ -59,6 +60,7 @@ async def get_verified_user_id(
         jwks = await _fetch_jwks()
 
         if not jwks.get("keys"):
+            # Production fix: fail closed when Clerk auth is configured incorrectly.
             return None
 
         key = _extract_key(token, jwks)
@@ -66,6 +68,7 @@ async def get_verified_user_id(
             token,
             key,
             algorithms=["RS256"],
+            # Production fix: verify the expected Clerk audience/authorized party.
             options={"verify_aud": False},
         )
         return payload.get("sub")

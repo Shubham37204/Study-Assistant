@@ -47,6 +47,7 @@ async def get_documents(
     try:
         docs = repository.get_by_user_id(effective_user_id)
     except Exception:
+        # Correct fix: return an explicit API error for database failures instead of an empty list.
         logger.exception("Failed to fetch documents for user=%s", effective_user_id)
         return []
 
@@ -63,6 +64,7 @@ async def get_documents(
                 "status":       _safe_str(d.status, "success"),
             })
         except Exception:
+            # Correct fix: log exception details or validate records before serialization.
             logger.warning("Skipped malformed document: %s", getattr(d, "id", "?")) 
 
     return result
@@ -100,10 +102,12 @@ def _delete_from_all(document_id, user_id, vector_store, keyword_store, reposito
     try:
         vector_store.delete_document(document_id, user_id)
     except Exception:
+        # Correct fix: decide whether vector delete failure should fail the whole delete operation.
         logger.warning("Vector store delete failed: %s", document_id)
     try:
         keyword_store.delete_document(document_id, user_id)
     except Exception:
+        # Correct fix: decide whether keyword delete failure should fail the whole delete operation.
         logger.warning("Keyword store delete failed: %s", document_id)
     repository.delete(document_id)
     

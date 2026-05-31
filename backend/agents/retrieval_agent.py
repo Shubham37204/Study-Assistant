@@ -53,6 +53,7 @@ class RetrievalAgent:
             )
 
         except Exception:
+            # Correct fix: do not hide retrieval infrastructure failures as empty search results.
             logger.exception(
                 "Retrieval failed. user_id=%s search_type=%s query=%r",
                 query.user_id,

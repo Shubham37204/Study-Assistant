@@ -96,6 +96,7 @@ class QdrantVectorStore(BaseVectorStore):
                 with_payload=True,
             )
         except Exception:
+            # Correct fix: catch specific Qdrant exceptions and return an API-visible dependency error.
             logger.warning(
                 "Qdrant query failed. filters=%s",
                 filters,

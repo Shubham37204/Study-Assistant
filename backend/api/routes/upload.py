@@ -80,6 +80,7 @@ async def upload_file(
             "async":     True,
         }
 
+    # Correct fix: do not catch broad Exception here; catch only expected Celery/broker failures.
     except (OperationalError, ConnectionError, Exception) as exc:
         logger.warning("Celery unavailable (%s) — running synchronously", exc.__class__.__name__)
         loop = asyncio.get_running_loop()
@@ -106,6 +107,7 @@ def _cleanup_empty_uploads_dir(file_path: Path) -> None:
         if folder.exists() and not any(folder.iterdir()):
             folder.rmdir()
     except Exception:
+        # Correct fix: log cleanup failures at debug level instead of silently ignoring them.
         pass
 
 

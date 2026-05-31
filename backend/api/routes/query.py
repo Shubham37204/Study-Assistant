@@ -23,7 +23,7 @@ async def query_documents(
 ) -> QueryResponse:
 
     effective_user_id = verified_id or body.user_id
-    cached = get_cached_query(body.query_text, body.document_ids)
+    cached = get_cached_query(body.query_text, body.document_ids, effective_user_id)
     if cached:
         citations = [CitationResponse(**c) for c in cached.get("citations", [])]
         return QueryResponse(
@@ -48,7 +48,7 @@ async def query_documents(
             ),
         )
 
-        set_cached_query(body.query_text, body.document_ids, response)
+        set_cached_query(body.query_text, body.document_ids, effective_user_id, response)
 
         citations = [CitationResponse(**c) for c in response.get("citations", [])]
 

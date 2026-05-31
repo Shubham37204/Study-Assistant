@@ -13,9 +13,8 @@ logger = logging.getLogger(__name__)
 _redis = redis.from_url(settings.redis_url, decode_responses=True)
 
 
-def _cache_key(query_text: str, doc_ids: list[str],user_id: str) -> str:
-    payload = json.dumps({"q": query_text, "docs": sorted(doc_ids),"u": user_id}, sort_keys=True)
-    digest = hashlib.sha256(payload.encode()).hexdigest()
+def _cache_key(query_text: str, doc_ids: list[str], user_id: str) -> str:
+    payload = json.dumps({"q": query_text, "docs": sorted(doc_ids), "u": user_id}, sort_keys=True)
     return f"qcache:{hashlib.sha256(payload.encode()).hexdigest()}"
 
 
@@ -26,6 +25,7 @@ def get_cached_query(query_text: str, doc_ids: list[str], user_id: str) -> dict 
         if raw:
             logger.debug("Cache hit for query: %r", query_text[:60])
             return json.loads(raw)
+    # Correct fix: catch Redis errors specifically and keep user_id in every cache key.
     except Exception:
         logger.warning("Redis read failed — proceeding without cache")
     return None
@@ -35,6 +35,7 @@ def set_cached_query(query_text: str, doc_ids: list[str], user_id: str,result: d
     try:
         key = _cache_key(query_text, doc_ids,user_id)
         _redis.setex(key, settings.query_cache_ttl, json.dumps(result))
+    # Correct fix: catch Redis errors specifically and keep user_id in every cache key.
     except Exception:
         logger.warning("Redis write failed — result not cached")
 
