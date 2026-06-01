@@ -1,5 +1,6 @@
 import Header from './Header'
 import Sidebar from './Sidebar'
+import Footer from './Footer'
 import ErrorBoundary from '../ui/ErrorBoundary'
 import OfflineBanner from '../ui/OfflineBanner'
 
@@ -22,6 +23,8 @@ function MainLayout({ children }) {
           </ErrorBoundary>
         </main>
       </div>
+
+      <Footer />
     </div>
   )
 }

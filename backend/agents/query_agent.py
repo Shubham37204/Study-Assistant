@@ -26,8 +26,8 @@ class QueryUnderstandingAgent:
         if not query_text.strip():
             return self._default_response(query_text)
         
-        if state.get("document_ids"):
-            result["needs_retrieval"] = True
+        #if state.get("document_ids"):
+            #result["needs_retrieval"] = True
 
         try:
             content = self.llm.complete(

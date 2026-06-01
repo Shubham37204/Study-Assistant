@@ -75,8 +75,12 @@ class RAGGraph:
         }
 
     def _run_query_agent(self, state: GraphState) -> dict:
-        return self.query_agent.run(state)
+        result = self.query_agent.run(state)
+        if state.get("document_ids"):
+            result["needs_retrieval"] = True
 
+        return result
+    
     def _run_planning_agent(self, state: GraphState) -> dict:
         return self.planning_agent.run(state)
 
