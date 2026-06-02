@@ -71,6 +71,7 @@ htmlcov/
 .tox/
 coverage.xml
 *.cover
+local_tests/
 
 # IDE specific
 .jupyterlab/

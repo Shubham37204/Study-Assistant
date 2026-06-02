@@ -25,6 +25,8 @@ from schemas.ingestion import (
 
 logger = logging.getLogger(__name__)
 
+_MIN_TOTAL_WORDS = 30
+
 
 class UnsupportedFileTypeError(Exception):
     def __init__(self, file_type: str, source: str | Path) -> None:
@@ -81,6 +83,40 @@ class IngestionAgent:
 
             extracted_doc = extractor.extract(source)
             cleaned_doc = self._clean_document(extracted_doc)
+            total_words = sum(page.word_count for page in cleaned_doc.pages)
+            too_little_text = total_words == 0 or (
+                cleaned_doc.file_type == FileType.PDF and total_words < _MIN_TOTAL_WORDS
+            )
+
+            if too_little_text:
+                logger.warning(
+                    "Extraction produced too little text. source=%s words=%s",
+                    source,
+                    total_words,
+                )
+                return IngestionResult(
+                    document_id=document_id,
+                    file_name=original_filename or self._get_file_name(source),
+                    file_type=cleaned_doc.file_type.value,
+                    total_chunks=0,
+                    summary=DocumentSummary(
+                        short_summary="No usable text was extracted from this document.",
+                        key_topics=[],
+                        estimated_difficulty="beginner",
+                    ),
+                    status="failed",
+                    errors=[
+                        IngestionError(
+                            stage="parse",
+                            message=(
+                                "No usable text extracted. The file may be encrypted, "
+                                "corrupt, image-only, or OCR could not read it."
+                            ),
+                            code="NO_USABLE_TEXT",
+                            recoverable=False,
+                        )
+                    ],
+                )
 
             chunks = self.chunker.chunk(
                 document_id=document_id,

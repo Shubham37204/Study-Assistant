@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+function isSelectableDocument(doc) {
+  return doc.status !== 'failed' && doc.total_chunks > 0
+}
+
 const useAppStore = create(
   persist(
     (set, get) => ({
@@ -15,7 +19,9 @@ const useAppStore = create(
         }),
 
       setDocuments: (docs) => {
-        const validIds = new Set(docs.map((d) => d.document_id))
+        const validIds = new Set(
+          docs.filter(isSelectableDocument).map((d) => d.document_id)
+        )
         set((state) => ({
           documents: docs,
           selectedDocIds: state.selectedDocIds.filter((id) => validIds.has(id)),

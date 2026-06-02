@@ -16,43 +16,64 @@ function DocumentItem({ doc }) {
   const { selectedDocIds, toggleDocSelection } = useAppStore()
   const [hovered, setHovered] = useState(false)
   const { mutate: remove, isPending: deleting } = useDeleteDocument()
-  const isSelected = selectedDocIds.includes(doc.document_id)
+  const isFailed = doc.status === 'failed' || doc.total_chunks === 0
+  const isSelected = !isFailed && selectedDocIds.includes(doc.document_id)
 
   function handleDelete(e) {
     e.stopPropagation()
     remove(doc.document_id)
   }
 
+  function handleToggle() {
+    if (!isFailed) toggleDocSelection(doc.document_id)
+  }
+
   return (
     <div
       role="button"
-      onClick={() => toggleDocSelection(doc.document_id)}
+      aria-disabled={isFailed}
+      onClick={handleToggle}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
-        'relative flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition-colors',
-        isSelected ? 'border-slate-300 bg-white' : 'border-slate-100 bg-white hover:border-slate-200',
+        'relative flex items-start gap-2.5 rounded-lg border p-3 transition-colors',
+        isFailed
+          ? 'cursor-not-allowed border-red-100 bg-red-50 opacity-75'
+          : 'cursor-pointer',
+        isSelected
+          ? 'border-slate-300 bg-white'
+          : !isFailed && 'border-slate-100 bg-white hover:border-slate-200',
         deleting && 'opacity-40 pointer-events-none'
       )}
     >
       <input
         type="checkbox"
         checked={isSelected}
-        onChange={() => toggleDocSelection(doc.document_id)}
+        disabled={isFailed}
+        onChange={handleToggle}
         onClick={(e) => e.stopPropagation()}
-        className="mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer accent-slate-800"
+        className={cn(
+          'mt-0.5 h-3.5 w-3.5 shrink-0 accent-slate-800',
+          isFailed ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+        )}
       />
 
       <div className="min-w-0 flex-1">
         <p title={doc.file_name} className="truncate text-xs font-medium text-slate-700">
           {doc.file_name}
         </p>
-        <div className="mt-1.5 flex items-center gap-2">
-          <span className={cn('rounded px-1.5 py-0.5 text-xs font-medium', typeColors[doc.file_type] ?? 'bg-slate-100 text-slate-500')}>
-            {doc.file_type}
-          </span>
-          <span className="text-xs text-slate-400">{doc.total_chunks} chunks</span>
-        </div>
+        {isFailed ? (
+          <p className="mt-1.5 text-xs text-red-500">
+            Failed - no usable text extracted
+          </p>
+        ) : (
+          <div className="mt-1.5 flex items-center gap-2">
+            <span className={cn('rounded px-1.5 py-0.5 text-xs font-medium', typeColors[doc.file_type] ?? 'bg-slate-100 text-slate-500')}>
+              {doc.file_type}
+            </span>
+            <span className="text-xs text-slate-400">{doc.total_chunks} chunks</span>
+          </div>
+        )}
       </div>
 
       {hovered && !deleting && (
@@ -65,7 +86,7 @@ function DocumentItem({ doc }) {
         </button>
       )}
 
-      {hovered && doc.summary && <DocumentDetail doc={doc} />}
+      {hovered && !isFailed && doc.summary && <DocumentDetail doc={doc} />}
     </div>
   )
 }
