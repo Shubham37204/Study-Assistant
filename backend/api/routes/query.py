@@ -61,10 +61,13 @@ async def query_documents(
 
     except HTTPException:
         raise
-    except Exception:
-        logger.exception("Query pipeline failed")
+    except Exception as e:
+        logger.exception("Query pipeline failed: %s", str(e))
         raise HTTPException(
             status_code=500,
-            detail=ErrorResponse(error="query_failed", detail="Pipeline error").model_dump(),
+            detail=ErrorResponse(
+                error="query_failed",
+                detail=f"Pipeline error: {type(e).__name__}: {str(e)}"
+            ).model_dump(),
         )
     

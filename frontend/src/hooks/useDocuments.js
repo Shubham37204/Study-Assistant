@@ -34,5 +34,5 @@ export function useDocuments() {
     tryFetch()
 
     return () => { cancelled = true }
-  }, [userId, isLoaded, setDocuments])
+  }, [userId, isLoaded])
 }

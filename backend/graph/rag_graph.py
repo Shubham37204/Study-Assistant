@@ -75,31 +75,58 @@ class RAGGraph:
         }
 
     def _run_query_agent(self, state: GraphState) -> dict:
-        result = self.query_agent.run(state)
-        if state.get("document_ids"):
-            result["needs_retrieval"] = True
-
-        return result
+        try:
+            result = self.query_agent.run(state)
+            if state.get("document_ids"):
+                result["needs_retrieval"] = True
+            logger.info("Query agent completed. intent=%s", result.get("intent"))
+            return result
+        except Exception as e:
+            logger.exception("Query agent failed: %s", str(e))
+            raise
     
     def _run_planning_agent(self, state: GraphState) -> dict:
-        return self.planning_agent.run(state)
+        try:
+            result = self.planning_agent.run(state)
+            logger.info("Planning agent completed. search_type=%s", 
+                       result.get("search_query").search_type if result.get("search_query") else None)
+            return result
+        except Exception as e:
+            logger.exception("Planning agent failed: %s", str(e))
+            raise
 
     def _run_retrieval_agent(self, state: GraphState) -> dict:
         search_query = state.get("search_query")
         if not search_query:
             logger.warning("search_query missing — skipping retrieval")
             return {"retrieved_chunks": [], "total_candidates": 0}
-        result = self.retrieval_agent.run(search_query)
-        return {
-            "retrieved_chunks": result.chunks,
-            "total_candidates": result.total_candidates_before_rerank,
-        }
+        try:
+            result = self.retrieval_agent.run(search_query)
+            return {
+                "retrieved_chunks": result.chunks,
+                "total_candidates": result.total_candidates_before_rerank,
+            }
+        except Exception as e:
+            logger.exception("Retrieval agent failed: %s", str(e))
+            return {"retrieved_chunks": [], "total_candidates": 0}
 
     def _run_generation_agent(self, state: GraphState) -> dict:
-        return self.generation_agent.run(state)
+        try:
+            result = self.generation_agent.run(state)
+            logger.info("Generation agent completed. answer_length=%d", len(result.get("answer", "")))
+            return result
+        except Exception as e:
+            logger.exception("Generation agent failed: %s", str(e))
+            raise
 
     def _run_critic_agent(self, state: GraphState) -> dict:
-        return self.critic_agent.run(state)
+        try:
+            result = self.critic_agent.run(state)
+            logger.info("Critic agent completed. is_grounded=%s", result.get("is_grounded"))
+            return result
+        except Exception as e:
+            logger.exception("Critic agent failed: %s", str(e))
+            raise
 
     def query(
         self,
@@ -108,6 +135,8 @@ class RAGGraph:
         document_ids: list[str] | None = None,
         conversation_history: list[dict] | None = None, 
     ) -> dict:
+        logger.info("Starting query. user_id=%s query=%r doc_ids=%s", user_id, query_text, document_ids)
+        
         initial_state: GraphState = {
             "user_id":              user_id,
             "query_text":           query_text,
@@ -121,7 +150,15 @@ class RAGGraph:
             "final_citations":      [],
         }
 
-        final_state = self.graph.invoke(initial_state)
+        try:
+            final_state = self.graph.invoke(initial_state)
+        except Exception as e:
+            logger.exception("Graph invocation failed: %s", str(e))
+            raise
+
+        logger.info("Query completed. answer_length=%d citations=%d", 
+                   len(final_state.get("final_answer", "")), 
+                   len(final_state.get("final_citations", [])))
 
         return {
             "answer":    final_state.get("final_answer", ""),

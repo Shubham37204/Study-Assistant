@@ -3,12 +3,17 @@ import { useAuth } from '@clerk/clerk-react'
 import { sendQuery } from '../api/query'
 import useAppStore from '../store/useAppStore'
 
+const EMPTY_MESSAGES = []
+
 export function useChatQuery() {
   const { userId } = useAuth()
-  const { addMessage, selectedDocIds, messages } = useAppStore()
+  const { addMessage, selectedDocIds } = useAppStore()
 
   return useMutation({
     mutationFn: (queryText) => {
+      const state = useAppStore.getState()
+      const key = [...state.selectedDocIds].sort().join(',') || '__global__'
+      const messages = state.conversations[key] || EMPTY_MESSAGES
       const history = messages.slice(-6)
       return sendQuery({
         queryText,

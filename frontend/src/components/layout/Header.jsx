@@ -7,14 +7,14 @@ function Header() {
   const { user } = useUser()
   const { isSignedIn } = useAuth()
   const clearDocuments = useAppStore((s) => s.clearDocuments)
-  const clearMessages  = useAppStore((s) => s.clearMessages)
+  const clearAllConversations = useAppStore((s) => s.clearAllConversations)
 
   useEffect(() => {
     if (isSignedIn === false) {
       clearDocuments()
-      clearMessages()
+      clearAllConversations()
     }
-  }, [isSignedIn, clearDocuments, clearMessages])
+  }, [isSignedIn, clearDocuments, clearAllConversations])
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-100 px-6">

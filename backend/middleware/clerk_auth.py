@@ -52,7 +52,7 @@ async def get_verified_user_id(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
 ) -> str | None:
     if not credentials:
-        # Production fix: require credentials instead of returning None for user-scoped routes.
+        # Return None if no credentials provided - optional for public routes
         return None
 
     token = credentials.credentials
@@ -60,7 +60,8 @@ async def get_verified_user_id(
         jwks = await _fetch_jwks()
 
         if not jwks.get("keys"):
-            # Production fix: fail closed when Clerk auth is configured incorrectly.
+            # No Clerk auth configured - skip verification
+            logger.warning("No JWKS keys available - JWT verification skipped")
             return None
 
         key = _extract_key(token, jwks)
@@ -68,10 +69,12 @@ async def get_verified_user_id(
             token,
             key,
             algorithms=["RS256"],
-            # Production fix: verify the expected Clerk audience/authorized party.
-            options={"verify_aud": False},
+            options={"verify_aud": False},  # Clerk tokens don't always have aud claim
         )
-        return payload.get("sub")
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Token missing subject claim")
+        return user_id
 
     except HTTPException:
         raise

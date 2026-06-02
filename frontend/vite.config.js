@@ -7,6 +7,8 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const backendUrl = process.env.VITE_API_BASE_URL || "http://localhost:8000";
+
 export default defineConfig({
   plugins: [react()],
 
@@ -18,11 +20,11 @@ export default defineConfig({
 
   server: {
     proxy: {
-      "/upload": "http://localhost:8000",
-      "/query": "http://localhost:8000",
-      "/documents": "http://localhost:8000",
-      "/jobs": "http://localhost:8000",
-      "/health": "http://localhost:8000",
+      "/upload": backendUrl,
+      "/query": backendUrl,
+      "/documents": backendUrl,
+      "/jobs": backendUrl,
+      "/health": backendUrl,
     },
   },
 });

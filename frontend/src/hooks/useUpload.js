@@ -31,7 +31,7 @@ export function useUpload() {
 
       if (response.job_id) {
         try {
-          const result = await pollJobStatus(response.job_id, toastId);
+          const result = await pollJobStatus(response.job_id);
           return { ...result, _toastId: toastId };
         } catch (err) {
           toast.dismiss(toastId);
@@ -49,7 +49,6 @@ export function useUpload() {
         duration: 4000,
       });
       addDocument(data);
-      console.log("STORE AFTER ADD", useAppStore.getState().documents);
     },
 
     onError: (error) => {
@@ -58,9 +57,10 @@ export function useUpload() {
   });
 }
 
-async function pollJobStatus(jobId, attempts = 0) {
-  if (attempts > MAX_POLLS) throw new Error('Upload timed out')
-
+async function pollJobStatus(jobId, attempts = 0) {  
+  if (attempts > MAX_POLLS) {
+    throw new Error('Upload timed out — backend may be slow')
+  }
   const res  = await apiClient.get(`/jobs/${jobId}`)
   const data = res.data
 
@@ -68,5 +68,5 @@ async function pollJobStatus(jobId, attempts = 0) {
   if (data.status === 'failed')  throw new Error(data.error || 'Ingestion failed')
 
   await new Promise((r) => setTimeout(r, POLL_INTERVAL))
-  return pollJobStatus(jobId, attempts + 1)
+  return pollJobStatus(jobId, attempts + 1)  
 }

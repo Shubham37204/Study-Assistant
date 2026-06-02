@@ -134,7 +134,12 @@ def _sync_ingest(source: str, user_id: str, original_filename: str) -> dict:
         }
     finally:
         db.close()
-        source_path.unlink(missing_ok=True)
+        try:
+            source_path.unlink(missing_ok=True)
+        except (PermissionError, OSError):
+            # On Windows, file may still be locked by image processing library
+            # Attempt will succeed on next run or cleanup task
+            pass
         _cleanup_empty_uploads_dir(source_path)  
 
 

@@ -18,6 +18,7 @@ from qdrant_client.models import (
 from config import settings
 from providers.vectorstores.base import BaseVectorStore
 from schemas.chunk import Chunk
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,19 @@ class QdrantVectorStore(BaseVectorStore):
         self._ensure_collection()
 
     def _ensure_collection(self) -> None:
-        existing = {c.name for c in self.client.get_collections().collections}
+        try:
+            existing = {c.name for c in self.client.get_collections().collections}
+        except UnexpectedResponse as e:
+            logger.error("Failed to get Qdrant collections: %s", str(e))
+            logger.error("Qdrant URL: %s", self.client._client.http)
+            raise RuntimeError(
+                f"Cannot connect to Qdrant at {getattr(self.client, '_client', 'unknown')}. "
+                "Check QDRANT_URL and QDRANT_API_KEY in .env file."
+            ) from e
+        except Exception as e:
+            logger.exception("Unexpected error checking Qdrant collections")
+            raise
+        
         if self.collection not in existing:
             self.client.create_collection(
                 collection_name=self.collection,
@@ -79,14 +92,8 @@ class QdrantVectorStore(BaseVectorStore):
 
         self.client.upsert(collection_name=self.collection, points=points)
 
-    def query(
-        self,
-        embedding: list[float],
-        top_k: int,
-        filters: dict[str, Any],
-    ) -> list[dict[str, Any]]:
+    def query(self, embedding, top_k, filters):
         qdrant_filter = self._build_filter(filters)
-
         try:
             hits = self.client.search(
                 collection_name=self.collection,
@@ -95,12 +102,12 @@ class QdrantVectorStore(BaseVectorStore):
                 query_filter=qdrant_filter,
                 with_payload=True,
             )
+        except UnexpectedResponse as exc:
+            body = exc.content.decode() if exc.content else "no body"
+            logger.error("Qdrant 400: status=%d body=%s filters=%s", exc.status_code, body, filters)
+            return []
         except Exception:
-            # Correct fix: catch specific Qdrant exceptions and return an API-visible dependency error.
-            logger.warning(
-                "Qdrant query failed. filters=%s",
-                filters,
-            )
+            logger.warning("Qdrant query failed. filters=%s", filters)
             return []
 
         return [
